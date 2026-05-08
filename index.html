@@ -268,7 +268,6 @@ CONTENT: Unified CC-8 (Networks), CC-9 (VB.NET), and CC-10 (Oracle).
     </div>
 
     <script>
-        const apiKey = "AIzaSyCCa7yV94-ixy_65gdQOaMnfUwzZ5EWbS4";
         const systemPrompt = `Act as a world-class Full Stack System Engineer and Tutor for the BCA Professional track.
         You are an expert in three specific modules:
         1. CC-8: Computer Networks (OSI, Topologies, Signal Processing, Switching, DLL/Network/Transport protocols).
@@ -314,7 +313,7 @@ CONTENT: Unified CC-8 (Networks), CC-9 (VB.NET), and CC-10 (Oracle).
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
             try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
+                const res = await fetch(`/api/chat`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
