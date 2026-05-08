@@ -3,92 +3,356 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - BCA Engineering</title>
+    <title>BCA ENGINEER | The Technical Ecosystem</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        corePlugins: {
+          preflight: false,
+        }
+      }
+    </script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
-        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3); }
-        .nav-link { transition: all 0.3s ease; border-bottom: 2px solid transparent; }
-        .nav-link:hover { color: #06b6d4; border-bottom-color: #06b6d4; }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        :root {
+            --primary: #6366f1; /* Indigo */
+            --accent: #06b6d4;  /* Cyan */
+            --dark-bg: #0f172a; /* Deep Navy */
+            --card-bg: #1e293b; /* Slate Navy */
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
 
-        .ai-bubble { max-width: 85%; border-radius: 18px; padding: 12px 16px; margin-bottom: 8px; font-size: 0.875rem; line-height: 1.5; }
-        
-        /* Dashboard Box Hover Effects */
-        .dash-box { transition: all 0.3s ease; cursor: pointer; border: 2px solid rgba(255, 255, 255, 0.2); }
-        .dash-box:hover { border-color: rgba(6, 182, 212, 0.8); box-shadow: 0 0 30px rgba(6, 182, 212, 0.2); transform: translateY(-4px); }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* --- NAVIGATION --- */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 8%;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0; z-index: 1000;
+            border-bottom: 1px solid var(--glass);
+        }
+
+        .logo { 
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: var(--accent);
+            letter-spacing: -1px;
+        }
+
+        .nav-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            margin-left: 30px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover { color: var(--accent); }
+
+        /* --- HERO SECTION --- */
+        header {
+            padding: 120px 8% 100px;
+            text-align: center;
+            background: radial-gradient(circle at top right, #1e1b4b, var(--dark-bg));
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle { 
+            color: var(--text-dim); 
+            max-width: 700px; 
+            margin: 0 auto 40px;
+            font-size: 1.1rem;
+        }
+
+        .cta-button {
+            padding: 15px 35px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .cta-button:hover {
+            background: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(6, 182, 212, 0.3);
+        }
+
+        /* --- STATS SECTION --- */
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 50px;
+            padding: 40px 8%;
+            background: var(--glass);
+            border-bottom: 1px solid var(--glass);
+            text-align: center;
+        }
+
+        .stat-item h2 { color: var(--accent); font-size: 2.2rem; }
+        .stat-item p { color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* --- FEATURE GRID (The Dashboard Feel) --- */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            padding: 60px 8%;
+            margin-top: -60px; /* Overlaps hero */
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            padding: 45px 35px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-decoration: none;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-12px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .card-icon { font-size: 2.5rem; margin-bottom: 20px; display: block; }
+        .feature-card h3 { font-size: 1.6rem; margin-bottom: 12px; }
+        .feature-card p { color: var(--text-dim); font-size: 0.95rem; }
+
+        /* --- DESCRIPTION SECTION --- */
+        .info-section {
+            padding: 100px 8%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .info-content h2 { font-size: 2.5rem; margin-bottom: 24px; line-height: 1.2; }
+        .info-content p { color: var(--text-dim); margin-bottom: 20px; font-size: 1.1rem; }
+
+        .check-list { list-style: none; margin-top: 30px; }
+        .check-list li {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: var(--text-main);
+        }
+
+        .check-list li::before { 
+            content: '✔'; 
+            color: var(--accent); 
+            font-weight: bold; 
+            background: rgba(6, 182, 212, 0.1);
+            padding: 5px 10px;
+            border-radius: 6px;
+        }
+
+        .info-visual {
+            height: 400px;
+            background: linear-gradient(135deg, #1e293b 0%, #312e81 100%);
+            border-radius: 24px;
+            border: 1px solid var(--glass);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+        }
+
+        /* --- ABOUT (BENTO STYLE) --- */
+        #about {
+            padding: 80px 8% 120px;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .section-tag {
+            color: var(--accent);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 2px;
+            display: block;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .section-title { text-align: center; font-size: 2.5rem; margin-bottom: 60px; }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+        }
+
+        .about-box {
+            background: var(--glass);
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid var(--glass);
+        }
+
+        .about-box h3 { margin-bottom: 15px; color: var(--accent); }
+
+        /* --- FOOTER --- */
+        footer {
+            padding: 60px 8%;
+            border-top: 1px solid var(--glass);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .info-section, .about-grid { grid-template-columns: 1fr; }
+            .info-visual { height: 250px; }
+            nav { padding: 15px 5%; }
+            .nav-links { display: none; }
+        }
     </style>
 </head>
-<body class="antialiased min-h-screen flex flex-col relative overflow-hidden">
+<body>
 
-    <nav class="absolute top-0 w-full z-50 glass-card border-b border-white/5 py-4 px-6 flex justify-between items-center">
-        <div class="flex items-center gap-2">
-            <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/20">Σ</div>
-            <span class="font-extrabold text-xl tracking-tighter hidden sm:block">BCA <span class="text-cyan-400">ENGINEERING</span></span>
+    <nav>
+        <div class="logo">BCA_ENGINEER.exe</div>
+        <div class="nav-links">
+            <a href="#dashboard">Dashboard</a>
+            <a href="#features">Features</a>
+            <a href="#about">About</a>
         </div>
-        <div class="hidden md:flex absolute left-1/2 -translate-x-1/2 gap-16 text-xl font-black tracking-wide">
-            <a href="categories.html" class="nav-link text-white">course</a>
-            <a href="categories.html" class="nav-link text-slate-400 hover:text-white uppercase">PYQ</a>
-        </div>
-        <button id="ai-toggle-top" class="bg-cyan-500 hover:bg-cyan-400 text-slate-900 px-4 py-1.5 rounded-full text-xs font-bold transition-all">AI TUTOR ACTIVE</button>
     </nav>
 
-    <!-- Background Glow -->
-    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900/20 via-[#0f172a] to-[#0f172a] -z-10 pointer-events-none"></div>
+    <header>
+        <h1 class="hero-title">Engineering the Future of BCA</h1>
+        <p class="hero-subtitle">The premium ecosystem for Computer Application students. Bridging the gap between university syllabus and industry-grade engineering.</p>
+        <button onclick="window.location.href='categories.html'" class="cta-button">Enter Dashboard</button>
+    </header>
 
-    <main class="flex-1 flex flex-col items-center justify-center px-6 pt-24 pb-20 w-full max-w-5xl mx-auto">
-        <h1 class="text-5xl md:text-6xl font-black text-white mb-16 tracking-wide">DASHBOARD</h1>
+    <section id="dashboard" class="feature-grid">
+        <a href="categories.html" class="feature-card">
+            <span class="card-icon">📖</span>
+            <h3>Course Modules</h3>
+            <p>One-shot video lectures and modular notes covering C, Java, .NET, and DSA.</p>
+        </a>
+        <a href="categories.html" class="feature-card">
+            <span class="card-icon">📂</span>
+            <h3>PYQ Archive</h3>
+            <p>Previous Year Questions with verified solutions, organized by semester.</p>
+        </a>
+        <a href="#" onclick="document.getElementById('ai-chat-window').classList.toggle('hidden'); return false;" class="feature-card">
+            <span class="card-icon">⚡</span>
+            <h3>AI Tutor</h3>
+            <p>Instant logic debugging and code explanation powered by advanced AI.</p>
+        </a>
+    </section>
 
-        <div class="w-full space-y-6">
-            <!-- Top Row: Course and PYQ -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-                <div onclick="window.location.href='categories.html'" class="dash-box glass-card rounded-2xl h-48 md:h-64 flex items-center justify-center bg-slate-800/50 group">
-                    <h2 class="text-3xl md:text-4xl font-bold text-white group-hover:text-cyan-300 transition-colors tracking-widest">COURSE</h2>
-                </div>
-                <div onclick="window.location.href='categories.html'" class="dash-box glass-card rounded-2xl h-48 md:h-64 flex items-center justify-center bg-slate-800/50 group">
-                    <h2 class="text-3xl md:text-4xl font-bold text-white group-hover:text-cyan-300 transition-colors tracking-widest">PYQ</h2>
-                </div>
+    <section class="stats-bar">
+        <div class="stat-item"><h2>12k+</h2><p>Active Students</p></div>
+        <div class="stat-item"><h2>500+</h2><p>Solved Papers</p></div>
+        <div class="stat-item"><h2>24/7</h2><p>Resource Access</p></div>
+    </section>
+
+    <section id="features" class="info-section">
+        <div class="info-content">
+            <h2>Built by Engineers,<br>For Future Developers.</h2>
+            <p>We don't just provide notes; we provide a technical roadmap. Every resource is optimized for clarity and technical accuracy.</p>
+            <ul class="check-list">
+                <li>Deep dives into PL/SQL & Database Management</li>
+                <li>System Administration & Linux Configuration guides</li>
+                <li>Free access to premium software libraries</li>
+            </ul>
+        </div>
+        <div class="info-visual">
+            <code>&lt;Ready to Scale /&gt;</code>
+        </div>
+    </section>
+
+    <section id="about">
+        <span class="section-tag">Identity</span>
+        <h2 class="section-title">The Engineering Hub</h2>
+        <div class="about-grid">
+            <div class="about-box">
+                <h3>Our Mission</h3>
+                <p>BCA Engineer was founded to solve a single problem: the lack of high-quality, free engineering resources for BCA students. We focus on "System-Level" thinking, teaching you not just how to code, but how systems work under the hood.</p>
             </div>
-            
-            <!-- Bottom Row: About Section -->
-            <div onclick="alert('About Section Coming Soon!')" class="dash-box glass-card rounded-2xl h-32 md:h-48 flex items-center px-12 bg-slate-800/50 group">
-                <h2 class="text-2xl md:text-3xl font-bold text-white group-hover:text-cyan-300 transition-colors tracking-widest">ABOUT SECTION</h2>
+            <div class="about-box" style="background: var(--primary); color: white;">
+                <h3>Join Us</h3>
+                <p>Become part of a growing community of developers and system admins.</p>
             </div>
         </div>
-    </main>
+    </section>
+
+    <footer>
+        <div>© 2026 BCA ENGINEER. All rights reserved.</div>
+        <div style="font-family: 'JetBrains Mono'; color: var(--accent);">v2.0.4_stable</div>
+    </footer>
 
     
     <!-- AI Chat Container -->
     <div id="ai-chat-container" class="fixed bottom-6 left-6 z-[60]">
-        <button id="ai-toggle-btn" class="w-16 h-16 bg-gradient-to-tr from-cyan-500 to-indigo-600 rounded-full shadow-2xl flex items-center justify-center text-white hover:scale-110 transition-transform active:scale-95 group">
+        <button id="ai-toggle-btn" class="w-16 h-16 bg-gradient-to-tr from-cyan-500 to-indigo-600 rounded-full shadow-2xl flex items-center justify-center text-white hover:scale-110 transition-transform active:scale-95 group border-0 outline-none cursor-pointer">
             <svg class="h-8 w-8 group-hover:-rotate-12 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
         </button>
         
-        <div id="ai-chat-window" class="hidden absolute bottom-20 left-0 w-80 md:w-96 glass-card rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-white/10" style="background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(16px);">
+        <div id="ai-chat-window" class="hidden absolute bottom-20 left-0 w-80 md:w-96 rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-white/10" style="background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(16px);">
             <div class="p-4 bg-slate-900/80 text-white flex justify-between items-center border-b border-white/5">
-                <div class="flex items-center"><div class="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></div><span class="font-bold text-xs uppercase tracking-widest">Master Engineer AI</span></div>
-                <button id="close-chat" class="text-slate-400 hover:text-white">&times;</button>
+                <div class="flex items-center"><div class="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></div><span class="font-bold text-xs uppercase tracking-widest" style="font-family:'Inter', sans-serif;">University AI Guide</span></div>
+                <button id="close-chat" class="text-slate-400 hover:text-white bg-transparent border-none cursor-pointer text-xl">&times;</button>
             </div>
             
             <div class="p-2 flex gap-1 overflow-x-auto bg-slate-800/50">
-                <button onclick="askAI('Summarize BCA Syllabus')" class="text-[10px] bg-slate-700 hover:bg-rose-500/20 px-2 py-1 rounded whitespace-nowrap">BCA Syllabus</button>
-                <button onclick="askAI('Explain .NET CLR Process')" class="text-[10px] bg-slate-700 hover:bg-emerald-500/20 px-2 py-1 rounded whitespace-nowrap">CLR Logic</button>
-                <button onclick="askAI('What is Solid Waste Management?')" class="text-[10px] bg-slate-700 hover:bg-amber-500/20 px-2 py-1 rounded whitespace-nowrap">Waste Management</button>
+                <button onclick="askAI('What courses does the university offer?')" class="text-[10px] bg-slate-700 hover:bg-cyan-500/20 px-2 py-1 rounded whitespace-nowrap border-none text-white cursor-pointer">Explore Courses</button>
+                <button onclick="askAI('What is the difference between Regular and Self-Financed?')" class="text-[10px] bg-slate-700 hover:bg-indigo-500/20 px-2 py-1 rounded whitespace-nowrap border-none text-white cursor-pointer">Regular vs Self-Financed</button>
+                <button onclick="askAI('How to use the PYQ Archive?')" class="text-[10px] bg-slate-700 hover:bg-rose-500/20 px-2 py-1 rounded whitespace-nowrap border-none text-white cursor-pointer">Find PYQs</button>
             </div>
 
-            <div id="chat-messages" class="flex-1 p-4 overflow-y-auto max-h-96 min-h-[350px] bg-slate-900/40 space-y-4">
-                <div class="ai-bubble bg-slate-800 text-slate-300 self-start border border-white/5 shadow-sm" style="max-width: 85%; border-radius: 18px; padding: 12px 16px; margin-bottom: 8px; font-size: 0.875rem;">Hello Engineer! I am your AI assistant trained on the BCA curriculum. How can I help you today?</div>
+            <div id="chat-messages" class="flex-1 p-4 overflow-y-auto max-h-96 min-h-[350px] bg-slate-900/40 space-y-4" style="font-family:'Inter', sans-serif;">
+                <div class="ai-bubble bg-slate-800 text-slate-300 self-start border border-white/5 shadow-sm" style="max-width: 85%; border-radius: 18px; padding: 12px 16px; margin-bottom: 8px; font-size: 0.875rem;">Hello! I am your University AI Guide. Whether you are studying Arts, Science, Commerce, or Professional courses like BCA & BBA, I am here to help you navigate your academic journey!</div>
             </div>
 
             <div class="p-3 border-t border-white/5 flex gap-2 bg-slate-900/80">
-                <input type="text" id="chat-input" placeholder="Query the engineering brain..." class="flex-1 bg-slate-800 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-500">
-                <button id="send-chat" class="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-500 transition-colors">
+                <input type="text" id="chat-input" placeholder="Ask about any university course..." class="flex-1 bg-slate-800 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-500 border-none outline-none">
+                <button id="send-chat" class="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-500 transition-colors border-none cursor-pointer flex items-center justify-center">
                     <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
                 </button>
             </div>
@@ -96,7 +360,7 @@
     </div>
 
     <script id="ai-script-block">
-        const systemPrompt = "Act as a world-class Full Stack System Engineer and Tutor for the BCA Professional track. You are an expert in BCA courses. Provide high-level technical responses. Use code blocks for examples. Keep tone professional yet encouraging.";
+        const systemPrompt = "Act as a world-class Academic Counselor and Tutor for a University. You are an expert in ALL university courses, including Regular courses (B.A., B.Sc., B.Com) and Self-Financed professional courses (BCA, BBA, Biotech). Provide helpful, accurate, and encouraging guidance to students from any discipline. If they ask about engineering, provide technical help. If they ask about arts, provide academic insights. Be concise and use a professional yet encouraging tone.";
         const chatWindow = document.getElementById('ai-chat-window');
         const chatInput = document.getElementById('chat-input');
         const chatMessages = document.getElementById('chat-messages');
@@ -149,5 +413,5 @@
         if(sendBtn) sendBtn.onclick = sendMessage;
         if(chatInput) chatInput.onkeypress = (e) => { if(e.key === 'Enter') sendMessage(); };
     </script>
-</body>
+\n</body>
 </html>

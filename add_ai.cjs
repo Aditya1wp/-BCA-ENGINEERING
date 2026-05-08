@@ -1,78 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Select Category - BCA Engineering</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
-        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3); }
-    </style>
-</head>
-<body class="antialiased min-h-screen flex flex-col justify-center items-center relative overflow-hidden">
+const fs = require('fs');
+const path = require('path');
 
-    <nav class="absolute top-0 w-full z-50 glass-card border-b border-white/5 py-4 px-6 flex justify-between items-center">
-        <div class="flex items-center gap-4">
-            <button onclick="window.location.href='index.html'" class="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors group">
-                <svg class="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            </button>
-            <div class="hidden sm:flex items-center gap-2">
-                <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/20">Σ</div>
-                <span class="font-extrabold text-xl tracking-tighter">BCA <span class="text-cyan-400">ENGINEERING</span></span>
-            </div>
-        </div>
-        <div class="text-lg font-bold uppercase tracking-wide text-white">
-            Program Selection
-        </div>
-        <div class="w-24"></div>
-    </nav>
-
-    <!-- Background glow -->
-    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900/20 via-[#0f172a] to-[#0f172a] -z-10 pointer-events-none"></div>
-
-    <div class="text-center mb-12 mt-20">
-        <h1 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 to-cyan-300 mb-4 tracking-tight">Select Program Category</h1>
-        <p class="text-slate-400 max-w-xl mx-auto">Choose between subsidized foundational academic programs and self-financed professional vocational courses.</p>
-    </div>
-
-    <div class="glass-card rounded-3xl p-10 md:p-16 text-center border border-indigo-500/20 relative w-full max-w-5xl mx-4">
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-500/10 via-transparent to-transparent"></div>
-        <div class="relative z-10 flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16">
-            
-            <!-- Modern Regular Course Button -->
-            <button onclick="window.location.href='courses.html?type=regular'" class="group relative w-full md:w-80 h-48 rounded-3xl p-[1px] bg-gradient-to-br from-cyan-500/30 to-indigo-500/30 hover:from-cyan-400 hover:to-indigo-500 transition-all duration-500 shadow-2xl shadow-cyan-500/5 hover:shadow-cyan-500/25 hover:-translate-y-2">
-                <div class="w-full h-full bg-slate-900/90 rounded-3xl flex flex-col items-center justify-center gap-4 backdrop-blur-xl group-hover:bg-slate-900/60 transition-all duration-500 relative overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-tr from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    <div class="p-4 bg-cyan-500/10 rounded-2xl text-cyan-400 group-hover:scale-110 group-hover:bg-cyan-500/20 transition-all duration-300 shadow-[0_0_15px_rgba(6,182,212,0.1)] group-hover:shadow-[0_0_20px_rgba(6,182,212,0.3)]">
-                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <span class="font-black text-2xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-indigo-300 tracking-tight z-10">Regular Course</span>
-                        <span class="text-[11px] text-cyan-200/50 font-bold tracking-[0.2em] uppercase z-10">Master The Core</span>
-                    </div>
-                </div>
-            </button>
-
-            <!-- Modern Self Financed Button -->
-            <button onclick="window.location.href='courses.html?type=self-financed'" class="group relative w-full md:w-80 h-48 rounded-3xl p-[1px] bg-gradient-to-br from-rose-500/30 to-amber-500/30 hover:from-rose-400 hover:to-amber-500 transition-all duration-500 shadow-2xl shadow-rose-500/5 hover:shadow-rose-500/25 hover:-translate-y-2">
-                <div class="w-full h-full bg-slate-900/90 rounded-3xl flex flex-col items-center justify-center gap-4 backdrop-blur-xl group-hover:bg-slate-900/60 transition-all duration-500 relative overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-tr from-rose-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    <div class="p-4 bg-rose-500/10 rounded-2xl text-rose-400 group-hover:scale-110 group-hover:bg-rose-500/20 transition-all duration-300 shadow-[0_0_15px_rgba(244,63,94,0.1)] group-hover:shadow-[0_0_20px_rgba(244,63,94,0.3)]">
-                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <span class="font-black text-xl text-transparent bg-clip-text bg-gradient-to-r from-rose-300 to-amber-300 tracking-tight z-10 text-center leading-none">Self Financed Course</span>
-                        <span class="text-[11px] text-rose-200/50 font-bold tracking-[0.2em] uppercase z-10 mt-2">Professional Focus</span>
-                    </div>
-                </div>
-            </button>
-
-        </div>
-    </div>
-
-    
+const aiBlock = `
     <!-- AI Chat Container -->
     <div id="ai-chat-container" class="fixed bottom-6 left-6 z-[60]">
         <button id="ai-toggle-btn" class="w-16 h-16 bg-gradient-to-tr from-cyan-500 to-indigo-600 rounded-full shadow-2xl flex items-center justify-center text-white hover:scale-110 transition-transform active:scale-95 group border-0 outline-none cursor-pointer">
@@ -148,7 +77,7 @@
                 const aiDiv = document.createElement('div');
                 aiDiv.className = 'ai-bubble bg-slate-800 text-slate-300 self-start border border-white/5';
                 aiDiv.style.cssText = 'max-width: 85%; border-radius: 18px; padding: 12px 16px; margin-bottom: 8px; font-size: 0.875rem;';
-                aiDiv.innerHTML = '<div class="font-bold text-[10px] text-cyan-400 mb-2 tracking-tighter uppercase">AI Response</div>' + aiMsg.replace(/\n/g, '<br>').replace(/```/g, '<code class="bg-black/50 px-1 rounded">');
+                aiDiv.innerHTML = '<div class="font-bold text-[10px] text-cyan-400 mb-2 tracking-tighter uppercase">AI Response</div>' + aiMsg.replace(/\\n/g, '<br>').replace(/\`\`\`/g, '<code class="bg-black/50 px-1 rounded">');
                 chatMessages.appendChild(aiDiv);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             } catch (err) {
@@ -158,5 +87,23 @@
         if(sendBtn) sendBtn.onclick = sendMessage;
         if(chatInput) chatInput.onkeypress = (e) => { if(e.key === 'Enter') sendMessage(); };
     </script>
-\n</body>
-</html>
+`;
+
+const files = ['index.html', 'legacy_dashboard.html', 'categories.html', 'courses.html', 'semesters.html'];
+
+files.forEach(file => {
+    let content = fs.readFileSync(file, 'utf8');
+    
+    // Remove existing AI Chat Container if present
+    const aiContainerStart = content.indexOf('<!-- AI Chat Container -->');
+    if (aiContainerStart !== -1) {
+        const bodyEnd = content.indexOf('</body>');
+        content = content.substring(0, aiContainerStart) + content.substring(bodyEnd);
+    }
+
+    // Now inject the new block right before </body>
+    content = content.replace('</body>', aiBlock + '\\n</body>');
+    
+    fs.writeFileSync(file, content);
+    console.log('Updated ' + file + ' with generalized AI bot.');
+});
