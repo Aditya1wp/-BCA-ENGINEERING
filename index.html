@@ -41,6 +41,7 @@ CONTENT: Unified CC-8 (Networks), CC-9 (VB.NET), and CC-10 (Oracle).
             <a href="#cc8" class="nav-link">CC-8 Networks</a>
             <a href="#cc9" class="nav-link">CC-9 VB.NET</a>
             <a href="#cc10" class="nav-link">CC-10 Oracle</a>
+            <a href="#sec02" class="nav-link">SEC-02 Solid Waste</a>
         </div>
         <button id="ai-toggle-top" class="bg-cyan-500 hover:bg-cyan-400 text-slate-900 px-4 py-1.5 rounded-full text-xs font-bold transition-all">AI TUTOR ACTIVE</button>
     </nav>
@@ -60,6 +61,9 @@ CONTENT: Unified CC-8 (Networks), CC-9 (VB.NET), and CC-10 (Oracle).
                 </button>
                 <button onclick="scrollToSection('cc10')" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 rounded-xl border border-white/5 transition-all flex items-center gap-2">
                     <span class="w-2 h-2 bg-cyan-500 rounded-full"></span> Oracle RDBMS
+                </button>
+                <button onclick="scrollToSection('sec02')" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 rounded-xl border border-white/5 transition-all flex items-center gap-2">
+                    <span class="w-2 h-2 bg-amber-500 rounded-full"></span> Waste Management
                 </button>
             </div>
         </div>
@@ -234,6 +238,78 @@ CONTENT: Unified CC-8 (Networks), CC-9 (VB.NET), and CC-10 (Oracle).
             </div>
         </section>
 
+        <section id="sec02" class="scroll-mt-24">
+            <div class="flex items-center gap-4 mb-8">
+                <h2 class="text-3xl font-bold">SEC-02: Solid Waste <span class="text-amber-400">Management</span></h2>
+                <div class="h-[1px] flex-1 bg-gradient-to-r from-amber-500/50 to-transparent"></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="glass-card rounded-3xl p-8 lg:col-span-2">
+                    <h3 class="text-xl font-bold mb-6 text-amber-300">Waste Classification & Lifecycle</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="p-4 bg-slate-900 rounded-xl border border-white/5">
+                            <h4 class="font-bold text-slate-300 text-sm mb-2">Municipal (MSW)</h4>
+                            <p class="text-xs text-slate-400">Organic and inorganic everyday refuse from residential and commercial sources.</p>
+                        </div>
+                        <div class="p-4 bg-slate-900 rounded-xl border border-rose-500/20 relative overflow-hidden group">
+                            <div class="absolute inset-0 bg-rose-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <h4 class="font-bold text-rose-400 text-sm mb-2">Hazardous</h4>
+                            <p class="text-xs text-slate-400">Ignitable, corrosive, reactive, or toxic materials.</p>
+                        </div>
+                        <div class="p-4 bg-slate-900 rounded-xl border border-cyan-500/20">
+                            <h4 class="font-bold text-cyan-400 text-sm mb-2">Biomedical</h4>
+                            <p class="text-xs text-slate-400">Infectious materials and sharps requiring high-temp sterilization.</p>
+                        </div>
+                    </div>
+                    
+                    <h4 class="font-bold text-sm text-slate-300 mb-3 mt-6 uppercase tracking-widest border-b border-white/10 pb-2">Treatment & Disposal Matrix</h4>
+                    <div class="space-y-3">
+                        <div class="flex flex-col md:flex-row gap-4 items-center bg-slate-800/50 p-4 rounded-xl border border-white/5">
+                            <div class="w-full md:w-1/3 font-bold text-amber-200">Sanitary Landfill</div>
+                            <div class="w-full md:w-2/3 text-sm text-slate-400">Controlled burial with impermeable liners (clay/synthetic) and leachate collection systems to prevent groundwater contamination.</div>
+                        </div>
+                        <div class="flex flex-col md:flex-row gap-4 items-center bg-slate-800/50 p-4 rounded-xl border border-white/5">
+                            <div class="w-full md:w-1/3 font-bold text-orange-300">Incineration</div>
+                            <div class="w-full md:w-2/3 text-sm text-slate-400">Aerobic combustion providing significant volume reduction and heat recovery.</div>
+                        </div>
+                        <div class="flex flex-col md:flex-row gap-4 items-center bg-slate-800/50 p-4 rounded-xl border border-white/5">
+                            <div class="w-full md:w-1/3 font-bold text-rose-300">Pyrolysis</div>
+                            <div class="w-full md:w-2/3 text-sm text-slate-400">Anaerobic thermal decay producing high-value chemical feedstocks (combustible gases, bio-oil, char).</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-3xl p-8 flex flex-col justify-between relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl"></div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-amber-300">Resource Recovery</h3>
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed">Prioritizing energy and material recovery via the 4R Framework (Reduce, Reuse, Recycle, Recover) and Industrial Treatment.</p>
+                        
+                        <div class="space-y-4">
+                            <div class="p-4 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                                <h4 class="font-bold text-emerald-300 mb-1 text-sm">Biological Processing</h4>
+                                <ul class="text-xs text-slate-400 space-y-1">
+                                    <li><span class="text-emerald-400 font-bold">Composting:</span> Aerobic decomposition to soil amendment.</li>
+                                    <li><span class="text-emerald-400 font-bold">Anaerobic Digestion:</span> O<sub>2</sub>-free breakdown producing methane biogas.</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="p-4 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
+                                <h4 class="font-bold text-indigo-300 mb-1 text-sm">Industrial Effluent</h4>
+                                <p class="text-xs text-slate-400">Removing toxic heavy metals and pollutants from wastewater (ETP) and municipal sewage (STP) before discharge.</p>
+                            </div>
+                            
+                            <div class="p-4 bg-amber-500/10 rounded-xl border border-amber-500/20">
+                                <h4 class="font-bold text-amber-300 mb-1 text-sm">Refuse Derived Fuel (RDF)</h4>
+                                <p class="text-xs text-slate-400">High-calorific components sorted via Mechanical Biological Treatment (MBT) to substitute coal in power plants.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <div id="ai-chat-container" class="fixed bottom-6 right-6 z-[60]">
@@ -252,10 +328,11 @@ CONTENT: Unified CC-8 (Networks), CC-9 (VB.NET), and CC-10 (Oracle).
                 <button onclick="askAI('Summarize CC-8 Topologies')" class="text-[10px] bg-slate-700 hover:bg-rose-500/20 px-2 py-1 rounded whitespace-nowrap">Net Topologies</button>
                 <button onclick="askAI('Explain .NET CLR Process')" class="text-[10px] bg-slate-700 hover:bg-emerald-500/20 px-2 py-1 rounded whitespace-nowrap">CLR Logic</button>
                 <button onclick="askAI('Generate PL/SQL Trigger Code')" class="text-[10px] bg-slate-700 hover:bg-cyan-500/20 px-2 py-1 rounded whitespace-nowrap">SQL Triggers</button>
+                <button onclick="askAI('Explain the 4R Principle')" class="text-[10px] bg-slate-700 hover:bg-amber-500/20 px-2 py-1 rounded whitespace-nowrap">4R Principle</button>
             </div>
 
             <div id="chat-messages" class="flex-1 p-4 overflow-y-auto max-h-96 min-h-[350px] bg-slate-900/40 space-y-4">
-                <div class="ai-bubble bg-slate-800 text-slate-300 self-start border border-white/5 shadow-sm">Hello Engineer! I am trained on CC-8, CC-9, and CC-10. How can I help you today?</div>
+                <div class="ai-bubble bg-slate-800 text-slate-300 self-start border border-white/5 shadow-sm">Hello Engineer! I am trained on CC-8, CC-9, CC-10, and SEC-02. How can I help you today?</div>
             </div>
 
             <div class="p-3 border-t border-white/5 flex gap-2 bg-slate-900/80">
@@ -269,10 +346,11 @@ CONTENT: Unified CC-8 (Networks), CC-9 (VB.NET), and CC-10 (Oracle).
 
     <script>
         const systemPrompt = `Act as a world-class Full Stack System Engineer and Tutor for the BCA Professional track.
-        You are an expert in three specific modules:
+        You are an expert in four specific modules:
         1. CC-8: Computer Networks (OSI, Topologies, Signal Processing, Switching, DLL/Network/Transport protocols).
         2. CC-9: Visual Basic.NET (.NET Framework, CLR, OOP, WinForms, ADO.NET, XML, ASP.NET).
         3. CC-10: Oracle RDBMS (SQL clauses, functions, PL/SQL blocks, cursors, triggers, Oracle Forms/Reports).
+        4. SEC-02: Solid Waste Management (Waste generation, Landfills, Thermal treatment, Industrial waste ETP/STP, 4R principle).
         
         Provide high-level technical responses. Use code blocks for SQL/VB.NET examples. Keep tone professional yet encouraging.`;
 
