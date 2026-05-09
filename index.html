@@ -699,7 +699,7 @@
                 // Enable submit button
                 submitBtn.disabled = false;
                 submitBtn.className = "w-full py-5 rounded-2xl font-bold text-lg transition-all duration-300 uppercase tracking-widest cursor-pointer bg-cyan-500 text-[#0f172a] hover:bg-cyan-400 shadow-[0_0_30px_rgba(6,182,212,0.3)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)] hover:-translate-y-1";
-                submitBtn.textContent = "Publish Paper To Hub";
+                submitBtn.textContent = "Submit";
             } else {
                 resetFileUI();
             }
@@ -741,7 +741,7 @@
             }
 
             submitBtn.disabled = true;
-            submitBtn.textContent = "Reading File...";
+            submitBtn.textContent = "Submitting...";
             
             try {
                 // 1. Convert file to Base64
@@ -753,7 +753,7 @@
                 });
 
                 // 2. Upload to GitHub via backend API (which also updates database.json)
-                submitBtn.textContent = "Pushing to Repository...";
+                submitBtn.textContent = "Submitting...";
                 const uploadRes = await fetch('/api/upload', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -773,19 +773,19 @@
                 const uploadData = await uploadRes.json();
                 
                 if (!uploadRes.ok) {
-                    throw new Error(uploadData.error || 'Failed to push to GitHub');
+                    throw new Error(uploadData.error || 'Submission failed. Please try again.');
                 }
                 
                 closeUploadModal();
                 form.reset();
                 resetFileUI();
                 
-                alert("Successfully published paper to the hub and pushed to GitHub!");
+                alert("Your paper has been submitted successfully!");
             } catch (err) {
                 console.error(err);
                 showError(err.message || "Failed to upload. Check connection.");
                 submitBtn.disabled = false;
-                submitBtn.textContent = "Publish Paper To Hub";
+                submitBtn.textContent = "Submit";
             }
         });
     </script>

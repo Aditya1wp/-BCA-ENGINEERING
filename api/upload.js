@@ -101,7 +101,44 @@ export default async function handler(req, res) {
             });
         };
 
-        // 1. Upload PDF
+        // --- DUPLICATE CHECK: Fetch database.json FIRST ---
+        console.log("Checking for duplicates in database.json...");
+        let currentDb = [];
+        let dbSha = null;
+        
+        const dbFetchRes = await githubFetch('database.json');
+        
+        if (dbFetchRes.ok) {
+            const dbFetchData = await dbFetchRes.json();
+            const decodedContent = Buffer.from(dbFetchData.content, 'base64').toString('utf-8');
+            try {
+                currentDb = JSON.parse(decodedContent);
+            } catch(e) {
+                console.error("Failed to parse database.json, starting fresh.");
+                currentDb = [];
+            }
+            dbSha = dbFetchData.sha;
+        } else if (dbFetchRes.status !== 404) {
+            console.error("Error fetching database.json", await dbFetchRes.text());
+            throw new Error('Failed to fetch existing database.json');
+        }
+
+        // Check for duplicate: same course + subject code + year + semester
+        const parsedYear = parseInt(year) || new Date().getFullYear();
+        const duplicate = currentDb.find(doc => 
+            (doc.courseName || '').toLowerCase() === courseName.toLowerCase() &&
+            (doc.subjectCode || '').toUpperCase() === safeSubjectCode &&
+            doc.year === parsedYear &&
+            (doc.semester || '') === safeSemester
+        );
+
+        if (duplicate) {
+            return res.status(409).json({ 
+                error: `This document already exists: ${safeSubjectCode} (${courseName}, ${safeSemester} Sem, ${parsedYear}). Duplicate submissions are not allowed.` 
+            });
+        }
+
+        // 1. Upload PDF (only after duplicate check passes)
         const pdfRes = await githubFetch(filePath, {
             method: 'PUT',
             body: JSON.stringify({
@@ -124,26 +161,12 @@ export default async function handler(req, res) {
         const downloadUrl = pdfData.content.download_url;
         console.log("PDF Upload successful:", downloadUrl);
 
-        // 2. Update database.json
-        console.log("Fetching database.json...");
-        let currentDb = [];
-        let dbSha = null;
-        
-        const dbFetchRes = await githubFetch('database.json');
-        
-        if (dbFetchRes.ok) {
-            const dbFetchData = await dbFetchRes.json();
-            const decodedContent = Buffer.from(dbFetchData.content, 'base64').toString('utf-8');
-            try {
-                currentDb = JSON.parse(decodedContent);
-            } catch(e) {
-                console.error("Failed to parse database.json, starting fresh.");
-                currentDb = [];
-            }
-            dbSha = dbFetchData.sha;
-        } else if (dbFetchRes.status !== 404) {
-            console.error("Error fetching database.json", await dbFetchRes.text());
-            throw new Error('Failed to fetch existing database.json');
+        // 2. Update database.json (we already have currentDb and dbSha from the duplicate check)
+        // Re-fetch SHA in case it changed between duplicate check and now
+        const dbRefetch = await githubFetch('database.json');
+        if (dbRefetch.ok) {
+            const refetchData = await dbRefetch.json();
+            dbSha = refetchData.sha;
         }
 
         const newRecord = {
@@ -152,7 +175,7 @@ export default async function handler(req, res) {
             courseName: courseName,
             subjectCode: safeSubjectCode,
             subjectName: name || 'Unknown Subject',
-            year: parseInt(year) || new Date().getFullYear(),
+            year: parsedYear,
             semester: safeSemester,
             createdAt: new Date().toISOString(),
             fileName: filename,
