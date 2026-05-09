@@ -242,6 +242,30 @@
             nav { padding: 15px 5%; }
             .nav-links { display: none; }
         }
+
+        @media (max-width: 600px) {
+            .logo {
+                font-size: 1rem;
+                display: flex;
+                align-items: center;
+            }
+            .logo img {
+                height: 30px !important;
+                margin-right: 8px !important;
+            }
+            .logo-text {
+                display: none; /* Hide the duplicate text on mobile */
+            }
+            #main-upload-btn {
+                padding: 8px 16px !important;
+                font-size: 0.65rem !important;
+                gap: 6px !important;
+            }
+            #main-upload-btn svg {
+                width: 14px !important;
+                height: 14px !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -249,7 +273,7 @@
     <nav>
         <div class="logo">
             <img src="logo.png" alt="Logo" style="height: 40px; width: auto; object-fit: contain; margin-right: 15px;">
-            BCA_ENGINEER
+            <span class="logo-text">BCA_ENGINEER</span>
         </div>
         <div style="display: flex; gap: 20px; align-items: center;">
             <a href="github-cms.html" class="upload-btn" style="display:none;">GIT CMS</a>

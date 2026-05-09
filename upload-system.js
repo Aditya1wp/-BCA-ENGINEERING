@@ -70,6 +70,20 @@
         /* Modal Styles */
         .modal-open { overflow: hidden; }
         #upload-modal { font-family: 'Inter', 'Poppins', sans-serif; }
+
+        @media (max-width: 600px) {
+            #main-upload-btn {
+                padding: 6px 12px;
+                font-size: 0.6rem;
+                letter-spacing: 1px;
+                gap: 5px;
+                border-radius: 8px;
+            }
+            #main-upload-btn svg {
+                width: 14px;
+                height: 14px;
+            }
+        }
     `;
     const styleSheet = document.createElement("style");
     styleSheet.innerText = css;
