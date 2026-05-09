@@ -56,6 +56,20 @@
             letter-spacing: -1px;
         }
 
+        /* --- PREMIUM UPLOAD BUTTON --- */
+        @keyframes uploadShimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+        @keyframes floatIcon {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-3px); }
+        }
+        @keyframes innerGlow {
+            0%, 100% { box-shadow: inset 0 0 20px rgba(6, 182, 212, 0.08), 0 4px 15px rgba(0,0,0,0.3), 0 8px 30px rgba(6, 182, 212, 0.1); }
+            50% { box-shadow: inset 0 0 25px rgba(6, 182, 212, 0.15), 0 6px 20px rgba(0,0,0,0.35), 0 10px 40px rgba(6, 182, 212, 0.18); }
+        }
+
         .upload-btn {
             color: var(--text-main);
             text-decoration: none;
@@ -63,6 +77,86 @@
             font-weight: 700;
             letter-spacing: 1.5px;
             transition: 0.3s;
+        }
+
+        #main-upload-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 28px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: #e0f7fa;
+            border: 1px solid rgba(6, 182, 212, 0.25);
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(99, 102, 241, 0.08) 50%, rgba(6, 182, 212, 0.12) 100%);
+            backdrop-filter: blur(16px) saturate(1.4);
+            -webkit-backdrop-filter: blur(16px) saturate(1.4);
+            box-shadow:
+                inset 0 0 20px rgba(6, 182, 212, 0.08),
+                0 4px 15px rgba(0, 0, 0, 0.3),
+                0 8px 30px rgba(6, 182, 212, 0.1);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            animation: innerGlow 3s ease-in-out infinite;
+        }
+
+        /* Shimmer overlay */
+        #main-upload-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(
+                105deg,
+                transparent 30%,
+                rgba(6, 182, 212, 0.12) 45%,
+                rgba(255, 255, 255, 0.08) 50%,
+                rgba(6, 182, 212, 0.12) 55%,
+                transparent 70%
+            );
+            background-size: 200% 100%;
+            animation: uploadShimmer 4s ease-in-out infinite;
+            pointer-events: none;
+            border-radius: inherit;
+        }
+
+        /* Top highlight edge */
+        #main-upload-btn::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 10%; right: 10%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.5), transparent);
+            pointer-events: none;
+        }
+
+        #main-upload-btn:hover {
+            transform: scale(1.06);
+            border-color: rgba(6, 182, 212, 0.5);
+            color: #ffffff;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.14) 0%, rgba(99, 102, 241, 0.12) 50%, rgba(6, 182, 212, 0.18) 100%);
+            box-shadow:
+                inset 0 0 30px rgba(6, 182, 212, 0.15),
+                0 6px 25px rgba(0, 0, 0, 0.4),
+                0 12px 50px rgba(6, 182, 212, 0.2),
+                0 0 60px rgba(6, 182, 212, 0.08);
+            text-shadow: 0 0 12px rgba(6, 182, 212, 0.6);
+        }
+
+        #main-upload-btn:active {
+            transform: scale(0.97);
+        }
+
+        #main-upload-btn .upload-icon {
+            display: inline-flex;
+            animation: floatIcon 2.5s ease-in-out infinite;
         }
 
         .upload-btn:hover { color: var(--accent); text-shadow: 0 0 10px rgba(6, 182, 212, 0.5); }
@@ -257,7 +351,12 @@
         <div class="logo">BCA_ENGINEER</div>
         <div style="display: flex; gap: 20px; align-items: center;">
             <a href="github-cms.html" class="upload-btn" style="display:none;">GIT CMS</a>
-            <a href="#" id="main-upload-btn" class="upload-btn">UPLOAD</a>
+            <a href="#" id="main-upload-btn">
+                <span class="upload-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </span>
+                UPLOAD
+            </a>
         </div>
     </nav>
 
