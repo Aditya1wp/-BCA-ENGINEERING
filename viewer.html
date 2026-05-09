@@ -260,8 +260,9 @@
                     const matchCourse = docCourse === courseName.toLowerCase();
                     const matchDocType = docDocType === docType.toLowerCase();
                     const matchSemester = !semester || docSemester === semester.toLowerCase();
+                    const isVerified = doc.verified !== false; // Default to true if property missing
                     
-                    return matchCourse && matchDocType && matchSemester;
+                    return matchCourse && matchDocType && matchSemester && isVerified;
                 });
 
                 // Update cache

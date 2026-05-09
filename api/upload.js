@@ -187,6 +187,7 @@ export default async function handler(req, res) {
             year: parsedYear,
             semester: safeSemester,
             docType: docType || 'pyq',
+            verified: false, // New: moderation status
             createdAt: new Date().toISOString(),
             fileName: filename,
             fileSize: fileSize || 0,
