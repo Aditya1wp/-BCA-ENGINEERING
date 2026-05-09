@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BCA ENGINEER | GitHub CMS</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Poppins', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            colors: {
+              gray: {
+                900: '#0B1120',
+                800: '#0f172a',
+                700: '#1e293b',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        body { background-color: #0B1120; color: #f8fafc; }
+        .glass-panel { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef } = React;
+
+        // SVG Icons
+        const Icons = {
+            Settings: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>,
+            Upload: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>,
+            FileText: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>,
+            Check: () => <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>,
+            Alert: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>,
+            Database: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>,
+            Search: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>,
+            Download: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>,
+            ArrowLeft: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>,
+        };
+
+        const MAX_FILE_SIZE_MB = 10;
+        const SEMESTERS = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th'];
+
+        // Helper: Convert File to Base64
+        const fileToBase64 = (file) => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result.split(',')[1]); // Only keep the raw base64 content
+            reader.onerror = error => reject(error);
+        });
+
+        // Helper: Encode text to Base64 safely (handling UTF-8)
+        const textToBase64 = (text) => btoa(unescape(encodeURIComponent(text)));
+        const base64ToText = (base64) => decodeURIComponent(escape(atob(base64)));
+
+        function App() {
+            // State
+            const [config, setConfig] = useState({ token: '', owner: '', repo: '' });
+            const [isConfigured, setIsConfigured] = useState(false);
+            const [view, setView] = useState('dashboard'); // 'dashboard', 'upload', 'settings'
+            const [documents, setDocuments] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState('');
+            const [searchQuery, setSearchQuery] = useState('');
+
+            // Upload Form State
+            const fileInputRef = useRef(null);
+            const [uploading, setUploading] = useState(false);
+            const [uploadForm, setUploadForm] = useState({
+                subjectCode: '',
+                subjectName: '',
+                year: new Date().getFullYear(),
+                semester: '1st',
+                file: null
+            });
+
+            // Initialize
+            useEffect(() => {
+                const savedConfig = localStorage.getItem('github_cms_config');
+                if (savedConfig) {
+                    const parsed = JSON.parse(savedConfig);
+                    if (parsed.token && parsed.owner && parsed.repo) {
+                        setConfig(parsed);
+                        setIsConfigured(true);
+                    } else {
+                        setView('settings');
+                        setLoading(false);
+                    }
+                } else {
+                    setView('settings');
+                    setLoading(false);
+                }
+            }, []);
+
+            // Fetch Database
+            useEffect(() => {
+                if (isConfigured && view === 'dashboard') {
+                    fetchDatabase();
+                }
+            }, [isConfigured, view]);
+
+            const githubFetch = async (path, options = {}) => {
+                const res = await fetch(`https://api.github.com/repos/${config.owner}/${config.repo}/contents/${path}`, {
+                    ...options,
+                    headers: {
+                        'Authorization': `Bearer ${config.token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    }
+                });
+                return res;
+            };
+
+            const fetchDatabase = async () => {
+                setLoading(true);
+                setError('');
+                try {
+                    const res = await githubFetch('database.json');
+                    if (res.status === 404) {
+                        // File doesn't exist, we will create it on first upload
+                        setDocuments([]);
+                    } else if (!res.ok) {
+                        throw new Error(`GitHub API Error: ${res.statusText}`);
+                    } else {
+                        const data = await res.json();
+                        const content = base64ToText(data.content);
+                        setDocuments(JSON.parse(content));
+                    }
+                } catch (err) {
+                    console.error(err);
+                    setError(err.message || 'Failed to fetch database.json. Check your credentials and repo name.');
+                    if(err.message.includes("401") || err.message.includes("404")) {
+                        setView('settings'); // Force them to check settings
+                    }
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const saveConfig = (e) => {
+                e.preventDefault();
+                localStorage.setItem('github_cms_config', JSON.stringify(config));
+                setIsConfigured(true);
+                setView('dashboard');
+                fetchDatabase();
+            };
+
+            const handleFileChange = (e) => {
+                const file = e.target.files[0];
+                setError('');
+                if (file) {
+                    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+                        setError(`File size exceeds ${MAX_FILE_SIZE_MB}MB limit.`);
+                        setUploadForm(prev => ({ ...prev, file: null }));
+                        e.target.value = null;
+                    } else {
+                        setUploadForm(prev => ({ ...prev, file }));
+                    }
+                }
+            };
+
+            const handleUpload = async (e) => {
+                e.preventDefault();
+                if (!uploadForm.subjectCode || !uploadForm.subjectName || !uploadForm.file) {
+                    setError('Please fill all fields and select a file.');
+                    return;
+                }
+
+                setUploading(true);
+                setError('');
+                try {
+                    const safeSubjectCode = uploadForm.subjectCode.replace(/[^a-zA-Z0-9-]/g, '_').toUpperCase();
+                    const timestamp = Date.now();
+                    const ext = '.pdf';
+                    const filePath = `uploads/bca/${uploadForm.semester}/${safeSubjectCode}_${timestamp}${ext}`;
+
+                    // 1. Convert to Base64
+                    const base64Content = await fileToBase64(uploadForm.file);
+
+                    // 2. Upload PDF
+                    const pdfRes = await githubFetch(filePath, {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            message: `feat: add resource ${safeSubjectCode}`,
+                            content: base64Content
+                        })
+                    });
+
+                    if (!pdfRes.ok) {
+                        const errData = await pdfRes.json();
+                        throw new Error(errData.message || 'Failed to upload PDF to GitHub');
+                    }
+                    const pdfData = await pdfRes.json();
+                    const downloadUrl = pdfData.content.download_url;
+
+                    // 3. Update database.json
+                    // First get current database.json to get its SHA (required for update)
+                    let currentDb = [];
+                    let dbSha = null;
+                    const dbFetchRes = await githubFetch('database.json');
+                    
+                    if (dbFetchRes.ok) {
+                        const dbFetchData = await dbFetchRes.json();
+                        currentDb = JSON.parse(base64ToText(dbFetchData.content));
+                        dbSha = dbFetchData.sha;
+                    }
+
+                    const newRecord = {
+                        id: timestamp.toString(),
+                        subjectCode: safeSubjectCode,
+                        subjectName: uploadForm.subjectName,
+                        year: uploadForm.year,
+                        semester: uploadForm.semester,
+                        createdAt: new Date().toISOString(),
+                        fileName: uploadForm.file.name,
+                        fileSize: uploadForm.file.size,
+                        downloadUrl: downloadUrl // raw.githubusercontent link
+                    };
+
+                    currentDb.push(newRecord);
+
+                    const dbBody = {
+                        message: `update: append ${safeSubjectCode} to database.json`,
+                        content: textToBase64(JSON.stringify(currentDb, null, 2))
+                    };
+                    if (dbSha) dbBody.sha = dbSha;
+
+                    const dbUpdateRes = await githubFetch('database.json', {
+                        method: 'PUT',
+                        body: JSON.stringify(dbBody)
+                    });
+
+                    if (!dbUpdateRes.ok) {
+                        throw new Error('Failed to update database.json');
+                    }
+
+                    // Success
+                    setUploadForm({ subjectCode: '', subjectName: '', year: new Date().getFullYear(), semester: '1st', file: null });
+                    setView('dashboard');
+                    fetchDatabase();
+
+                } catch (err) {
+                    console.error(err);
+                    setError(err.message || 'Upload failed.');
+                } finally {
+                    setUploading(false);
+                }
+            };
+
+            const filteredDocs = useMemo(() => {
+                return documents.filter(doc => 
+                    doc.subjectCode.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                    doc.subjectName.toLowerCase().includes(searchQuery.toLowerCase())
+                ).sort((a, b) => b.id - a.id); // Sort newest first
+            }, [documents, searchQuery]);
+
+
+            // --- UI COMPONENTS ---
+            
+            if (view === 'settings') {
+                return (
+                    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+                        <div className="absolute -top-40 -right-40 w-96 h-96 bg-cyan-500/10 blur-[100px] pointer-events-none rounded-full"></div>
+                        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-indigo-600/10 blur-[100px] pointer-events-none rounded-full"></div>
+                        
+                        <div className="w-full max-w-lg glass-panel p-8 rounded-3xl shadow-2xl relative z-10 border border-slate-700/50">
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="p-3 bg-cyan-500/10 rounded-xl text-cyan-400">
+                                    <Icons.Database />
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-black tracking-tight">GitHub CMS Setup</h2>
+                                    <p className="text-slate-400 text-sm">Configure your Zero-Server Backend</p>
+                                </div>
+                            </div>
+                            
+                            <form onSubmit={saveConfig} className="space-y-5">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Personal Access Token (PAT)</label>
+                                    <input 
+                                        type="password" 
+                                        required
+                                        className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-mono text-sm"
+                                        placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                                        value={config.token}
+                                        onChange={e => setConfig({...config, token: e.target.value})}
+                                    />
+                                    <p className="text-[10px] text-slate-500 mt-1">Requires 'repo' scope.</p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Owner Username</label>
+                                        <input 
+                                            type="text" 
+                                            required
+                                            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-medium"
+                                            placeholder="e.g. Aditya1wp"
+                                            value={config.owner}
+                                            onChange={e => setConfig({...config, owner: e.target.value})}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Repository</label>
+                                        <input 
+                                            type="text" 
+                                            required
+                                            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-medium"
+                                            placeholder="e.g. -BCA-ENGINEERING"
+                                            value={config.repo}
+                                            onChange={e => setConfig({...config, repo: e.target.value})}
+                                        />
+                                    </div>
+                                </div>
+                                <button type="submit" className="w-full py-4 mt-4 rounded-xl font-bold transition-all duration-300 uppercase tracking-widest bg-cyan-500 text-[#0f172a] hover:bg-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.3)]">
+                                    Connect Database
+                                </button>
+                                {isConfigured && (
+                                    <button type="button" onClick={() => setView('dashboard')} className="w-full py-3 mt-2 rounded-xl font-bold transition-all duration-300 bg-slate-800 text-slate-300 hover:bg-slate-700">
+                                        Cancel
+                                    </button>
+                                )}
+                            </form>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    {/* Header */}
+                    <header className="bg-[#0B1120]/80 backdrop-blur-xl border-b border-slate-800/80 sticky top-0 z-50">
+                        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <h1 className="font-black text-xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-200 tracking-widest uppercase font-mono">
+                                    BCA_ENGINEER <span className="text-slate-500 text-sm ml-2">CMS</span>
+                                </h1>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <button onClick={() => setView('settings')} className="p-2.5 rounded-full bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors" title="Settings">
+                                    <Icons.Settings />
+                                </button>
+                                {view === 'dashboard' ? (
+                                    <button onClick={() => setView('upload')} className="flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm bg-cyan-500 text-[#0f172a] hover:bg-cyan-400 transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                                        <Icons.Upload /> Publish
+                                    </button>
+                                ) : (
+                                    <button onClick={() => { setView('dashboard'); setError(''); }} className="flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">
+                                        <Icons.ArrowLeft /> Back
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8">
+                        {error && (
+                            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex gap-3 text-red-400 text-sm items-center font-medium">
+                                <Icons.Alert />
+                                {error}
+                            </div>
+                        )}
+
+                        {view === 'dashboard' && (
+                            <div className="space-y-6">
+                                {/* Search Bar */}
+                                <div className="glass-panel p-4 rounded-2xl flex items-center gap-4">
+                                    <div className="text-slate-500 pl-2"><Icons.Search /></div>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Search subject code or name..." 
+                                        className="flex-1 bg-transparent border-none text-white focus:outline-none focus:ring-0 placeholder-slate-600 font-medium"
+                                        value={searchQuery}
+                                        onChange={e => setSearchQuery(e.target.value)}
+                                    />
+                                    <div className="text-xs font-mono text-slate-500 pr-2">
+                                        {documents.length} Records
+                                    </div>
+                                </div>
+
+                                {/* Content */}
+                                {loading ? (
+                                    <div className="py-20 text-center text-slate-500 font-mono animate-pulse">Fetching from GitHub...</div>
+                                ) : documents.length === 0 ? (
+                                    <div className="py-20 text-center glass-panel rounded-3xl">
+                                        <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-500">
+                                            <Icons.Database />
+                                        </div>
+                                        <h3 className="text-xl font-bold text-slate-300">Database Empty</h3>
+                                        <p className="text-slate-500 mt-2 text-sm">No documents found or database.json doesn't exist yet.<br/>Upload your first document to create it.</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {filteredDocs.map(doc => (
+                                            <div key={doc.id} className="glass-panel p-6 rounded-2xl hover:border-cyan-500/50 transition-colors group flex flex-col">
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <span className="bg-slate-800 text-cyan-400 border border-slate-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                                        {doc.semester} Sem
+                                                    </span>
+                                                    <span className="text-xs font-mono text-slate-500">
+                                                        {doc.year}
+                                                    </span>
+                                                </div>
+                                                <h3 className="font-black text-2xl text-white mb-1 group-hover:text-cyan-400 transition-colors">{doc.subjectCode}</h3>
+                                                <p className="text-slate-400 text-sm mb-6 flex-grow">{doc.subjectName}</p>
+                                                
+                                                <div className="flex items-center justify-between pt-4 border-t border-slate-800/80">
+                                                    <span className="text-xs text-slate-500 font-mono">{(doc.fileSize / 1024).toFixed(0)} KB</span>
+                                                    <a href={doc.downloadUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-bold text-white bg-slate-800 hover:bg-cyan-500 hover:text-[#0B1120] px-3 py-1.5 rounded-lg transition-colors">
+                                                        <Icons.Download /> Get PDF
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {view === 'upload' && (
+                            <div className="max-w-2xl mx-auto glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-700/50 relative overflow-hidden">
+                                <div className="absolute -top-32 -right-32 w-64 h-64 bg-cyan-500/10 blur-[80px] pointer-events-none rounded-full"></div>
+                                
+                                <h2 className="text-2xl font-black text-white mb-6">Publish to GitHub</h2>
+                                
+                                <form onSubmit={handleUpload} className="space-y-6 relative z-10">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Subject Code</label>
+                                            <input type="text" required className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-medium" placeholder="CS-301" value={uploadForm.subjectCode} onChange={e => setUploadForm({...uploadForm, subjectCode: e.target.value})} />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Subject Name</label>
+                                            <input type="text" required className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-medium" placeholder="Data Structures" value={uploadForm.subjectName} onChange={e => setUploadForm({...uploadForm, subjectName: e.target.value})} />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Semester</label>
+                                            <select className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-medium cursor-pointer" value={uploadForm.semester} onChange={e => setUploadForm({...uploadForm, semester: e.target.value})}>
+                                                {SEMESTERS.map(s => <option key={s} value={s}>{s}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Exam Year</label>
+                                            <input type="number" required className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-medium" value={uploadForm.year} onChange={e => setUploadForm({...uploadForm, year: e.target.value})} />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">PDF Document</label>
+                                        <input type="file" ref={fileInputRef} className="hidden" accept="application/pdf" onChange={handleFileChange} />
+                                        <div 
+                                            onClick={() => fileInputRef.current.click()}
+                                            className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${uploadForm.file ? 'border-cyan-500 bg-cyan-500/5' : 'border-slate-700 bg-slate-900/50 hover:border-cyan-500/50'}`}
+                                        >
+                                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-all ${uploadForm.file ? 'bg-cyan-500 text-[#0B1120]' : 'bg-slate-800 text-slate-400'}`}>
+                                                {uploadForm.file ? <Icons.Check /> : <Icons.FileText />}
+                                            </div>
+                                            <p className="font-bold text-white mb-1">{uploadForm.file ? uploadForm.file.name : 'Select PDF File'}</p>
+                                            <p className="text-xs text-slate-500">Max size: {MAX_FILE_SIZE_MB}MB</p>
+                                        </div>
+                                    </div>
+
+                                    <button 
+                                        type="submit" 
+                                        disabled={uploading || !uploadForm.file}
+                                        className={`w-full py-4 rounded-xl font-bold uppercase tracking-widest transition-all ${uploading || !uploadForm.file ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-cyan-500 text-[#0f172a] hover:bg-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.3)]'}`}
+                                    >
+                                        {uploading ? 'Processing & Uploading to GitHub...' : 'Upload to Git Database'}
+                                    </button>
+                                </form>
+                            </div>
+                        )}
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

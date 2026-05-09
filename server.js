@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import handler from './api/chat.js';
+import uploadHandler from './api/upload.js';
 
 dotenv.config();
 
@@ -12,13 +13,32 @@ const port = 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(express.static(__dirname));
 
 // Use the exact same handler from the api directory to test Vercel functions locally
 app.post('/api/chat', async (req, res) => {
     try {
         await handler(req, res);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/upload', async (req, res) => {
+    try {
+        await uploadHandler(req, res);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/upload', async (req, res) => {
+    try {
+        await uploadHandler(req, res);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: error.message });
