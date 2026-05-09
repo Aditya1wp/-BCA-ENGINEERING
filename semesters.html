@@ -16,6 +16,14 @@
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        @media (max-width: 600px) {
+            nav { padding: 10px 15px !important; gap: 10px; }
+            .logo-text { display: none; }
+            #nav-title { display: none; }
+            img[src="logo.png"] { height: 28px !important; }
+            .w-24 { width: 0 !important; display: none; }
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
@@ -27,7 +35,7 @@
                 <svg class="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             </button>
                 <img src="logo.png" alt="Logo" class="h-10 w-auto">
-                <span class="font-extrabold text-xl tracking-tighter">BCA <span class="text-cyan-400">ENGINEERING</span></span>
+                <span class="font-extrabold text-xl tracking-tighter logo-text">BCA <span class="text-cyan-400">ENGINEERING</span></span>
 
         </div>
         <div class="text-lg font-bold uppercase tracking-wide text-white">
