@@ -87,8 +87,8 @@
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
             <div class="relative p-6 md:p-8 border-b border-slate-800/80 text-center">
-                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-cyan-500/10 text-cyan-400 mb-4 ring-1 ring-cyan-500/30">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-cyan-500/10 text-cyan-400 mb-4 ring-1 ring-cyan-500/30 overflow-hidden">
+                    <img src="logo.png" alt="Logo" class="w-10 h-10 object-contain rounded-lg">
                 </div>
                 <h2 class="text-2xl md:text-3xl font-bold text-white tracking-tight mb-2">Publish Resource</h2>
                 <p class="text-slate-400 font-medium">Adding to the University Hub</p>
