@@ -151,9 +151,10 @@
         const params = new URLSearchParams(window.location.search);
         const courseName = params.get('course') || 'BCA';
         const docType = params.get('docType') || 'pyq';
+        const semester = params.get('semester') || '';
         const docTypeLabel = docType === 'notes' ? 'Notes' : 'PYQ';
 
-        document.getElementById('nav-title').textContent = `${courseName.toUpperCase()} ${docTypeLabel}`;
+        document.getElementById('nav-title').textContent = `${courseName.toUpperCase()} ${docTypeLabel} ${semester ? ' - ' + semester : ''}`;
 
         // ===== STATE =====
         let allDocs = [];
@@ -166,7 +167,7 @@
             const REPO = 'bca-pyq-database';
             const RAW_URL = `https://raw.githubusercontent.com/${OWNER}/${REPO}/main/database.json`;
             const PROXY_URL = '/api/upload';
-            const CACHE_KEY = `bca_cache_${courseName}_${docType}`;
+            const CACHE_KEY = `bca_cache_${courseName}_${docType}_${semester}`;
             
             // 1. Try local cache first (Reduced to 3 minutes for better sync)
             const cached = localStorage.getItem(CACHE_KEY);
@@ -186,7 +187,7 @@
         }
 
         async function forceRefresh() {
-            const CACHE_KEY = `bca_cache_${courseName}_${docType}`;
+            const CACHE_KEY = `bca_cache_${courseName}_${docType}_${semester}`;
             localStorage.removeItem(CACHE_KEY);
             document.getElementById('loading-state').classList.remove('hidden');
             document.getElementById('main-content').classList.add('hidden');
@@ -254,7 +255,13 @@
                 const filtered = data.filter(doc => {
                     const docCourse = (doc.courseName || 'BCA').toLowerCase();
                     const docDocType = (doc.docType || 'pyq').toLowerCase();
-                    return docCourse === courseName.toLowerCase() && docDocType === docType.toLowerCase();
+                    const docSemester = (doc.semester || '').toLowerCase();
+                    
+                    const matchCourse = docCourse === courseName.toLowerCase();
+                    const matchDocType = docDocType === docType.toLowerCase();
+                    const matchSemester = !semester || docSemester === semester.toLowerCase();
+                    
+                    return matchCourse && matchDocType && matchSemester;
                 });
 
                 // Update cache

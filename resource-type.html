@@ -125,11 +125,11 @@
         document.getElementById('nav-title').innerText = `${course.toUpperCase()} — Resource Type`;
 
         document.getElementById('pyq-card').addEventListener('click', () => {
-            window.location.href = `viewer.html?course=${encodeURIComponent(course)}&docType=pyq`;
+            window.location.href = `semesters.html?course=${encodeURIComponent(course)}&docType=pyq`;
         });
 
         document.getElementById('notes-card').addEventListener('click', () => {
-            window.location.href = `viewer.html?course=${encodeURIComponent(course)}&docType=notes`;
+            window.location.href = `semesters.html?course=${encodeURIComponent(course)}&docType=notes`;
         });
     </script>
 
