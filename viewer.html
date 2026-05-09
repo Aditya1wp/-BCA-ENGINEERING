@@ -251,15 +251,27 @@
 
                 if (!data) throw new Error(lastError || "Could not retrieve database from any source");
 
+                // Semester Mapping Utility (Handles both SEM-01 and 1st formats)
+                const mapSemester = (s) => {
+                    if (!s) return '';
+                    const map = {
+                        'SEM-01': '1st', 'SEM-02': '2nd', 'SEM-03': '3rd',
+                        'SEM-04': '4th', 'SEM-05': '5th', 'SEM-06': '6th'
+                    };
+                    return (map[s.toUpperCase()] || s).toLowerCase();
+                };
+
+                const targetSemester = mapSemester(semester);
+
                 // Filter
                 const filtered = data.filter(doc => {
                     const docCourse = (doc.courseName || 'BCA').toLowerCase();
                     const docDocType = (doc.docType || 'pyq').toLowerCase();
-                    const docSemester = (doc.semester || '').toLowerCase();
+                    const docSemester = mapSemester(doc.semester);
                     
                     const matchCourse = docCourse === courseName.toLowerCase();
                     const matchDocType = docDocType === docType.toLowerCase();
-                    const matchSemester = !semester || docSemester === semester.toLowerCase();
+                    const matchSemester = !semester || docSemester === targetSemester;
                     const isVerified = doc.verified !== false; // Default to true if property missing
                     
                     return matchCourse && matchDocType && matchSemester && isVerified;
