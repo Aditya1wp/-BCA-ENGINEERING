@@ -256,15 +256,15 @@
     <nav>
         <div class="logo">BCA_ENGINEER</div>
         <div style="display: flex; gap: 20px; align-items: center;">
-            <a href="github-cms.html" class="upload-btn" style="color: var(--accent);">GIT CMS</a>
+            <a href="github-cms.html" class="upload-btn" style="display:none;">GIT CMS</a>
             <a href="#" id="main-upload-btn" class="upload-btn">UPLOAD</a>
         </div>
     </nav>
 
     <header>
         <h1 class="hero-title">Engineering the Future of BCA</h1>
-        <p class="hero-subtitle">The premium ecosystem for Computer Application students. Bridging the gap between university syllabus and industry-grade engineering.</p>
-        <button onclick="window.location.href='categories.html'" class="cta-button">Enter Dashboard</button>
+        <p class="hero-subtitle">The ultimate hub for PU students to download, share, and discuss study materials. From Previous Year Questions to hand-written notes, everything you need for your BCA journey is right here.</p>
+        <button onclick="window.location.href='categories.html'" class="cta-button">Select Course</button>
     </header>
 
     <section id="dashboard" class="feature-grid">
@@ -354,6 +354,26 @@
                 <div id="upload-error" class="hidden p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex gap-3 text-red-400 text-sm items-center font-medium backdrop-blur-sm">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     <span id="upload-error-text">Error message</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest">Course Category</label>
+                        <select id="up-category" required class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none transition-all text-white font-medium appearance-none cursor-pointer">
+                            <option value="" disabled selected>Select Category</option>
+                            <option value="Regular UG">Regular UG</option>
+                            <option value="Self-Financed UG">Self-Financed UG</option>
+                            <option value="Regular PG">Regular PG</option>
+                            <option value="Self-Financed PG">Self-Financed PG</option>
+                            <option value="PG Diploma">PG Diploma</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest">Course Name</label>
+                        <select id="up-course" required disabled class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none transition-all text-white font-medium appearance-none cursor-pointer disabled:opacity-50">
+                            <option value="" disabled selected>Select Category First</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -509,6 +529,35 @@
 
         let selectedFile = null;
 
+        const categorySelect = document.getElementById('up-category');
+        const courseSelect = document.getElementById('up-course');
+
+        const courseData = {
+            'Regular UG': ['B.A. Hons', 'B.Sc. Hons', 'B.Com. Hons'],
+            'Self-Financed UG': ['BCA', 'BBA', 'B.Lib.I.Sc.', 'BFA', 'B.MC', 'BSW', 'Functional English', 'Biotechnology', 'Environmental Science'],
+            'Regular PG': ['M.A.', 'M.Sc.', 'M.Com.', 'LL.M.', 'M.Ed.'],
+            'Self-Financed PG': ['MCA', 'MBA', 'PMIR', 'M.Sc. Biotechnology', 'M.Sc. Environmental Science', 'M.Sc. Bio-Chemistry', 'MJMC', 'MSW', 'M.Lib.I.Sc.', 'M.A. Women\'s Studies', 'M.A. Music'],
+            'PG Diploma': ['PGDCA', 'Public Administration', 'Industrial Safety Management', 'Yogic Science', 'Human Resource Development', 'Clinical Psychology', 'Women\'s Studies']
+        };
+
+        categorySelect.addEventListener('change', (e) => {
+            const category = e.target.value;
+            courseSelect.innerHTML = '<option value="" disabled selected>Select Course Name</option>';
+            if (category && courseData[category]) {
+                courseSelect.disabled = false;
+                courseSelect.classList.remove('disabled:opacity-50');
+                courseData[category].forEach(course => {
+                    const opt = document.createElement('option');
+                    opt.value = course;
+                    opt.textContent = course;
+                    courseSelect.appendChild(opt);
+                });
+            } else {
+                courseSelect.disabled = true;
+                courseSelect.classList.add('disabled:opacity-50');
+            }
+        });
+
         window.openUploadModal = () => {
             modal.classList.remove('hidden');
             setTimeout(() => {
@@ -580,12 +629,14 @@
             e.preventDefault();
             if (!selectedFile) return;
 
+            const category = document.getElementById('up-category').value;
+            const courseName = document.getElementById('up-course').value;
             const code = document.getElementById('up-code').value;
             const name = document.getElementById('up-name').value;
             const sem = document.getElementById('up-sem').value;
             const year = document.getElementById('up-year').value;
 
-            if (!code || !name) {
+            if (!code || !name || !category || !courseName) {
                 showError("Please fill out all fields.");
                 return;
             }
@@ -611,6 +662,8 @@
                         filename: selectedFile.name,
                         fileSize: selectedFile.size,
                         content: base64Content,
+                        category: category,
+                        courseName: courseName,
                         code: code.toUpperCase(),
                         name: name,
                         sem: sem,

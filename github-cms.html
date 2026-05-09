@@ -65,6 +65,14 @@
         const MAX_FILE_SIZE_MB = 10;
         const SEMESTERS = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th'];
 
+        const COURSE_DATA = {
+            'Regular UG': ['B.A. Hons', 'B.Sc. Hons', 'B.Com. Hons'],
+            'Self-Financed UG': ['BCA', 'BBA', 'B.Lib.I.Sc.', 'BFA', 'B.MC', 'BSW', 'Functional English', 'Biotechnology', 'Environmental Science'],
+            'Regular PG': ['M.A.', 'M.Sc.', 'M.Com.', 'LL.M.', 'M.Ed.'],
+            'Self-Financed PG': ['MCA', 'MBA', 'PMIR', 'M.Sc. Biotechnology', 'M.Sc. Environmental Science', 'M.Sc. Bio-Chemistry', 'MJMC', 'MSW', 'M.Lib.I.Sc.', 'M.A. Women\'s Studies', 'M.A. Music'],
+            'PG Diploma': ['PGDCA', 'Public Administration', 'Industrial Safety Management', 'Yogic Science', 'Human Resource Development', 'Clinical Psychology', 'Women\'s Studies']
+        };
+
         // Helper: Convert File to Base64
         const fileToBase64 = (file) => new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -91,6 +99,8 @@
             const fileInputRef = useRef(null);
             const [uploading, setUploading] = useState(false);
             const [uploadForm, setUploadForm] = useState({
+                category: '',
+                courseName: '',
                 subjectCode: '',
                 subjectName: '',
                 year: new Date().getFullYear(),
@@ -186,7 +196,7 @@
 
             const handleUpload = async (e) => {
                 e.preventDefault();
-                if (!uploadForm.subjectCode || !uploadForm.subjectName || !uploadForm.file) {
+                if (!uploadForm.subjectCode || !uploadForm.subjectName || !uploadForm.file || !uploadForm.category || !uploadForm.courseName) {
                     setError('Please fill all fields and select a file.');
                     return;
                 }
@@ -195,9 +205,10 @@
                 setError('');
                 try {
                     const safeSubjectCode = uploadForm.subjectCode.replace(/[^a-zA-Z0-9-]/g, '_').toUpperCase();
+                    const safeCourseName = uploadForm.courseName.replace(/[^a-zA-Z0-9-]/g, '_').toLowerCase();
                     const timestamp = Date.now();
                     const ext = '.pdf';
-                    const filePath = `uploads/bca/${uploadForm.semester}/${safeSubjectCode}_${timestamp}${ext}`;
+                    const filePath = `uploads/${safeCourseName}/${uploadForm.semester}/${safeSubjectCode}_${timestamp}${ext}`;
 
                     // 1. Convert to Base64
                     const base64Content = await fileToBase64(uploadForm.file);
@@ -206,7 +217,7 @@
                     const pdfRes = await githubFetch(filePath, {
                         method: 'PUT',
                         body: JSON.stringify({
-                            message: `feat: add resource ${safeSubjectCode}`,
+                            message: `feat: add resource ${safeSubjectCode} to ${safeCourseName}`,
                             content: base64Content
                         })
                     });
@@ -232,6 +243,8 @@
 
                     const newRecord = {
                         id: timestamp.toString(),
+                        category: uploadForm.category,
+                        courseName: uploadForm.courseName,
                         subjectCode: safeSubjectCode,
                         subjectName: uploadForm.subjectName,
                         year: uploadForm.year,
@@ -260,7 +273,7 @@
                     }
 
                     // Success
-                    setUploadForm({ subjectCode: '', subjectName: '', year: new Date().getFullYear(), semester: '1st', file: null });
+                    setUploadForm({ category: '', courseName: '', subjectCode: '', subjectName: '', year: new Date().getFullYear(), semester: '1st', file: null });
                     setView('dashboard');
                     fetchDatabase();
 
@@ -448,6 +461,23 @@
                                 <h2 className="text-2xl font-black text-white mb-6">Publish to GitHub</h2>
                                 
                                 <form onSubmit={handleUpload} className="space-y-6 relative z-10">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Course Category</label>
+                                            <select required className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-medium cursor-pointer" value={uploadForm.category} onChange={e => setUploadForm({...uploadForm, category: e.target.value, courseName: ''})}>
+                                                <option value="" disabled>Select Category</option>
+                                                {Object.keys(COURSE_DATA).map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Course Name</label>
+                                            <select required disabled={!uploadForm.category} className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-medium cursor-pointer disabled:opacity-50" value={uploadForm.courseName} onChange={e => setUploadForm({...uploadForm, courseName: e.target.value})}>
+                                                <option value="" disabled>Select Course Name</option>
+                                                {uploadForm.category && COURSE_DATA[uploadForm.category].map(course => <option key={course} value={course}>{course}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
                                             <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Subject Code</label>

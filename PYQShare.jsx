@@ -38,6 +38,10 @@ export default function App() {
   const [documents, setDocuments] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   
+  // BCA Inline Viewer State
+  const [bcaSubjectCode, setBcaSubjectCode] = useState(null);
+  const [bcaYear, setBcaYear] = useState(null);
+  
   const fileInputRef = useRef(null);
   const [uploadError, setUploadError] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -131,7 +135,8 @@ export default function App() {
 
   const filteredDocs = useMemo(() => {
     return documents.filter(doc => {
-      const matchesGroup = doc.groupId === selectedGroupId;
+      const docCourseId = doc.courseName ? doc.courseName.toLowerCase() : 'bca';
+      const matchesGroup = docCourseId === selectedGroupId.toLowerCase();
       const matchesSemester = selectedSemester === 'All' || doc.semester === selectedSemester;
       const matchesSearch = 
         doc.subjectCode?.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -139,6 +144,32 @@ export default function App() {
       return matchesGroup && matchesSemester && matchesSearch;
     });
   }, [documents, selectedGroupId, selectedSemester, searchQuery]);
+
+  // BCA Inline Viewer Logic
+  const bcaSubjects = useMemo(() => {
+      return Array.from(new Set(filteredDocs.map(d => d.subjectCode))).sort();
+  }, [filteredDocs]);
+
+  useEffect(() => {
+      if (selectedGroupId === 'bca' && bcaSubjects.length > 0 && (!bcaSubjectCode || !bcaSubjects.includes(bcaSubjectCode))) {
+          setBcaSubjectCode(bcaSubjects[0]);
+      }
+  }, [selectedGroupId, bcaSubjects, bcaSubjectCode]);
+
+  const bcaYearsForSubject = useMemo(() => {
+      if (!bcaSubjectCode) return [];
+      return Array.from(new Set(filteredDocs.filter(d => d.subjectCode === bcaSubjectCode).map(d => d.year))).sort((a,b) => b - a);
+  }, [filteredDocs, bcaSubjectCode]);
+
+  useEffect(() => {
+      if (selectedGroupId === 'bca' && bcaYearsForSubject.length > 0 && (!bcaYear || !bcaYearsForSubject.includes(bcaYear))) {
+          setBcaYear(bcaYearsForSubject[0]);
+      }
+  }, [selectedGroupId, bcaYearsForSubject, bcaYear]);
+
+  const activeBcaDoc = useMemo(() => {
+      return filteredDocs.find(d => d.subjectCode === bcaSubjectCode && d.year === bcaYear);
+  }, [filteredDocs, bcaSubjectCode, bcaYear]);
 
   return (
     <div className="min-h-screen bg-[#0B1120] font-sans text-slate-200 selection:bg-cyan-500/30">
@@ -235,51 +266,117 @@ export default function App() {
               </div>
             </div>
 
-            {/* --- CARDS GRID --- */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
-              {filteredDocs.map((doc) => (
-                <div key={doc.id} className="group flex flex-col p-6 rounded-3xl border border-slate-800/60 bg-slate-900/30 hover:bg-slate-800/60 backdrop-blur-sm transition-all duration-300 hover:shadow-[0_8px_30px_rgba(6,182,212,0.08)] hover:-translate-y-1">
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="p-3.5 bg-slate-800/80 rounded-2xl text-cyan-400 border border-slate-700/50 group-hover:scale-110 group-hover:bg-cyan-500/10 transition-all duration-300">
-                      <Binary size={24} />
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <span className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm">
-                        {doc.semester} Sem
-                      </span>
-                      <span className="bg-slate-800 text-slate-300 border border-slate-700/50 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest shadow-sm">
-                        YEAR {doc.year}
-                      </span>
-                    </div>
+            {/* --- CONTENT AREA --- */}
+            {selectedGroupId === 'bca' ? (
+              /* --- BCA INLINE VIEWER --- */
+              <div className="flex flex-col md:flex-row gap-6 lg:gap-8 pt-4">
+                {/* Left Sidebar: Years */}
+                <div className="w-full md:w-28 flex flex-col gap-2 shrink-0">
+                  <h3 className="font-bold text-slate-400 text-xs tracking-widest uppercase mb-2 text-center">Select Year</h3>
+                  <div className="flex md:flex-col flex-row flex-wrap gap-3 p-3 bg-slate-900/40 rounded-3xl border border-slate-800/80 w-full justify-center backdrop-blur-sm">
+                    {bcaYearsForSubject.map(yr => (
+                      <button 
+                        key={yr} 
+                        onClick={() => setBcaYear(yr)} 
+                        className={`px-5 py-3 rounded-full font-black text-sm transition-all duration-300 shadow-sm border ${bcaYear === yr ? 'bg-cyan-500 text-[#0f172a] border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.4)]' : 'bg-slate-800/80 text-cyan-400 border-cyan-500/20 hover:bg-slate-800 hover:border-cyan-500/50 hover:shadow-lg'}`}
+                      >
+                        {yr}
+                      </button>
+                    ))}
+                    {bcaYearsForSubject.length === 0 && <span className="text-xs text-slate-500 text-center py-4">No Data</span>}
                   </div>
-                  <h3 className="font-black text-2xl text-white mb-2 tracking-tight group-hover:text-cyan-400 transition-colors">{doc.subjectCode}</h3>
-                  <p className="text-slate-400 text-sm mb-6 font-medium line-clamp-2 flex-grow">{doc.subjectName}</p>
-                  
-                  <div className="flex items-center gap-2 text-xs text-slate-500 mb-6 pb-6 border-b border-slate-800/50">
-                    <Clock size={14} className="text-cyan-500/60" />
-                    <span className="font-medium">{new Date(doc.createdAt).toLocaleDateString()}</span>
-                    <span className="ml-auto font-mono bg-slate-950/50 px-2 py-1 rounded-md text-slate-400 border border-slate-800/50">{(doc.fileSize / 1024).toFixed(0)} KB</span>
+                </div>
+
+                {/* Main Content Area */}
+                <div className="flex-1 flex flex-col gap-6">
+                  {/* Top Bar: Subjects */}
+                  <div className="flex flex-col items-center gap-2">
+                    <h3 className="font-bold text-slate-400 text-xs tracking-widest uppercase mb-2">Select Paper Code</h3>
+                    <div className="flex flex-wrap gap-3 p-2.5 bg-slate-900/40 rounded-full border border-slate-800/80 justify-center backdrop-blur-sm px-6">
+                      {bcaSubjects.map(sub => (
+                        <button 
+                          key={sub} 
+                          onClick={() => setBcaSubjectCode(sub)} 
+                          className={`px-6 py-2 rounded-full font-black text-sm transition-all duration-300 shadow-sm border ${bcaSubjectCode === sub ? 'bg-white text-[#0f172a] border-white shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'bg-[#D2E7A9]/10 text-[#D2E7A9] border-[#D2E7A9]/20 hover:bg-[#D2E7A9]/20 hover:border-[#D2E7A9]/50'}`}
+                        >
+                          {sub}
+                        </button>
+                      ))}
+                      {bcaSubjects.length === 0 && <span className="text-sm text-slate-500 py-2">No subjects found</span>}
+                    </div>
                   </div>
 
-                  <button 
-                    onClick={() => {
-                        if(doc.downloadUrl) window.open(doc.downloadUrl, '_blank');
-                        else alert('Download URL not available.');
-                    }}
-                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-slate-800/50 border border-slate-700/50 text-slate-200 font-bold hover:bg-cyan-500 hover:text-[#0B1120] hover:border-transparent transition-all duration-300 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] active:scale-[0.98]">
-                    <Download size={18} /> Download
-                  </button>
+                  {/* PDF Viewer */}
+                  <div className="flex-1 bg-slate-900/60 rounded-3xl shadow-2xl border border-slate-700/60 overflow-hidden flex flex-col min-h-[600px] md:min-h-[700px] backdrop-blur-md relative">
+                    <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-cyan-500 via-indigo-500 to-cyan-500"></div>
+                    <div className="bg-slate-800/50 p-4 text-center border-b border-slate-700/60">
+                      <span className="font-black text-white tracking-widest uppercase">
+                        {activeBcaDoc ? `CURRENT PYQ IS ${activeBcaDoc.subjectCode} ${activeBcaDoc.year}` : 'NO PDF SELECTED'}
+                      </span>
+                    </div>
+                    
+                    <div className="flex-1 w-full relative bg-[#FAF8F5]">
+                      {activeBcaDoc ? (
+                        <embed src={activeBcaDoc.downloadUrl} type="application/pdf" className="w-full h-full absolute inset-0" />
+                      ) : (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500 bg-slate-900/80">
+                          <Binary size={48} className="mb-4 opacity-50" />
+                          <p className="font-medium">Please select a Paper Code and Year</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              ))}
-            </div>
-            
-            {filteredDocs.length === 0 && (
-              <div className="text-center py-20">
-                <div className="inline-flex bg-slate-800/50 p-6 rounded-full text-slate-600 mb-4">
-                  <Search size={40} />
+              </div>
+            ) : (
+              /* --- STANDARD CARDS GRID --- */
+              <div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
+                  {filteredDocs.map((doc) => (
+                    <div key={doc.id} className="group flex flex-col p-6 rounded-3xl border border-slate-800/60 bg-slate-900/30 hover:bg-slate-800/60 backdrop-blur-sm transition-all duration-300 hover:shadow-[0_8px_30px_rgba(6,182,212,0.08)] hover:-translate-y-1">
+                      <div className="flex items-start justify-between mb-6">
+                        <div className="p-3.5 bg-slate-800/80 rounded-2xl text-cyan-400 border border-slate-700/50 group-hover:scale-110 group-hover:bg-cyan-500/10 transition-all duration-300">
+                          <Binary size={24} />
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                          <span className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm">
+                            {doc.semester} Sem
+                          </span>
+                          <span className="bg-slate-800 text-slate-300 border border-slate-700/50 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest shadow-sm">
+                            YEAR {doc.year}
+                          </span>
+                        </div>
+                      </div>
+                      <h3 className="font-black text-2xl text-white mb-2 tracking-tight group-hover:text-cyan-400 transition-colors">{doc.subjectCode}</h3>
+                      <p className="text-slate-400 text-sm mb-6 font-medium line-clamp-2 flex-grow">{doc.subjectName}</p>
+                      
+                      <div className="flex items-center gap-2 text-xs text-slate-500 mb-6 pb-6 border-b border-slate-800/50">
+                        <Clock size={14} className="text-cyan-500/60" />
+                        <span className="font-medium">{new Date(doc.createdAt).toLocaleDateString()}</span>
+                        <span className="ml-auto font-mono bg-slate-950/50 px-2 py-1 rounded-md text-slate-400 border border-slate-800/50">{(doc.fileSize / 1024).toFixed(0)} KB</span>
+                      </div>
+
+                      <button 
+                        onClick={() => {
+                            if(doc.downloadUrl) window.open(doc.downloadUrl, '_blank');
+                            else alert('Download URL not available.');
+                        }}
+                        className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-slate-800/50 border border-slate-700/50 text-slate-200 font-bold hover:bg-cyan-500 hover:text-[#0B1120] hover:border-transparent transition-all duration-300 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] active:scale-[0.98]">
+                        <Download size={18} /> Download
+                      </button>
+                    </div>
+                  ))}
                 </div>
-                <h3 className="text-xl font-bold text-slate-300">No resources found</h3>
-                <p className="text-slate-500 mt-2">Try adjusting your search or filters</p>
+                
+                {filteredDocs.length === 0 && (
+                  <div className="text-center py-20">
+                    <div className="inline-flex bg-slate-800/50 p-6 rounded-full text-slate-600 mb-4">
+                      <Search size={40} />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-300">No resources found</h3>
+                    <p className="text-slate-500 mt-2">Try adjusting your search or filters</p>
+                  </div>
+                )}
               </div>
             )}
           </div>

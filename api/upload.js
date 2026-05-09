@@ -55,11 +55,13 @@ export default async function handler(req, res) {
             code, 
             name, 
             sem, 
-            year 
+            year,
+            category,
+            courseName
         } = req.body;
         
-        if (!content || !filename || !code) {
-            return res.status(400).json({ error: 'File content, filename, and subject code are required' });
+        if (!content || !filename || !code || !courseName || !category) {
+            return res.status(400).json({ error: 'File content, filename, subject code, category, and course name are required' });
         }
 
         const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
@@ -73,13 +75,14 @@ export default async function handler(req, res) {
         // Clean up inputs
         const safeSubjectCode = code.replace(/[^a-zA-Z0-9-]/g, '_').toUpperCase();
         const safeSemester = sem ? sem.replace(/[^a-zA-Z0-9-]/g, '_') : 'Unknown_Sem';
+        const safeCourseName = courseName.replace(/[^a-zA-Z0-9-]/g, '_').toLowerCase();
         const timestamp = Date.now();
         
         // Get file extension
         const ext = filename.includes('.') ? '.' + filename.split('.').pop() : '.pdf';
         
-        // Construct the path: e.g. uploads/bca/1st/CS-301_169999999.pdf
-        const filePath = `uploads/bca/${safeSemester}/${safeSubjectCode}_${timestamp}${ext}`;
+        // Construct the path: e.g. uploads/bca/1st/CC-01_169999999.pdf
+        const filePath = `uploads/${safeCourseName}/${safeSemester}/${safeSubjectCode}_${timestamp}${ext}`;
         
         // Remove the data:application/pdf;base64, part from the base64 string if it exists
         const base64Content = content.split(',')[1] || content;
@@ -102,7 +105,7 @@ export default async function handler(req, res) {
         const pdfRes = await githubFetch(filePath, {
             method: 'PUT',
             body: JSON.stringify({
-                message: `feat: add resource ${safeSubjectCode} to bca/${safeSemester}`,
+                message: `feat: add resource ${safeSubjectCode} to ${safeCourseName}/${safeSemester}`,
                 content: base64Content,
                 branch: 'main'
             })
@@ -145,6 +148,8 @@ export default async function handler(req, res) {
 
         const newRecord = {
             id: timestamp.toString(),
+            category: category,
+            courseName: courseName,
             subjectCode: safeSubjectCode,
             subjectName: name || 'Unknown Subject',
             year: parseInt(year) || new Date().getFullYear(),
