@@ -100,6 +100,8 @@
             // Upload Form State
             const fileInputRef = useRef(null);
             const [uploading, setUploading] = useState(false);
+            const [viewMode, setViewMode] = useState('single'); // 'single', 'bulk'
+            const [bulkFiles, setBulkFiles] = useState([]); // [{file, metadata, status, error}]
             const [uploadForm, setUploadForm] = useState({
                 category: '',
                 courseName: '',
@@ -232,7 +234,6 @@
                     const downloadUrl = pdfData.content.download_url;
 
                     // 3. Update database.json
-                    // First get current database.json to get its SHA (required for update)
                     let currentDb = [];
                     let dbSha = null;
                     const dbFetchRes = await githubFetch('database.json');
@@ -249,12 +250,12 @@
                         courseName: uploadForm.courseName,
                         subjectCode: safeSubjectCode,
                         subjectName: uploadForm.subjectName,
-                        year: uploadForm.year,
+                        year: parseInt(uploadForm.year),
                         semester: uploadForm.semester,
                         createdAt: new Date().toISOString(),
                         fileName: uploadForm.file.name,
                         fileSize: uploadForm.file.size,
-                        downloadUrl: downloadUrl // raw.githubusercontent link
+                        downloadUrl: downloadUrl
                     };
 
                     currentDb.push(newRecord);
@@ -270,18 +271,143 @@
                         body: JSON.stringify(dbBody)
                     });
 
-                    if (!dbUpdateRes.ok) {
-                        throw new Error('Failed to update database.json');
-                    }
+                    if (!dbUpdateRes.ok) throw new Error('Failed to update database.json');
 
-                    // Success
                     setUploadForm({ category: '', courseName: '', subjectCode: '', subjectName: '', year: new Date().getFullYear(), semester: '1st', file: null });
                     setView('dashboard');
                     fetchDatabase();
-
                 } catch (err) {
-                    console.error(err);
                     setError(err.message || 'Upload failed.');
+                } finally {
+                    setUploading(false);
+                }
+            };
+
+            const handleBulkFileSelect = (e) => {
+                const files = Array.from(e.target.files);
+                const newBulkFiles = files.map(file => {
+                    // Smart Fill Logic: CourseName_Semester_SubjectCode_SubjectName_Year.pdf
+                    const nameWithoutExt = file.name.replace(/\.pdf$/i, '');
+                    const parts = nameWithoutExt.split('_');
+                    
+                    let metadata = {
+                        category: 'Self-Financed UG', // Default
+                        courseName: parts[0] || '',
+                        semester: parts[1] || '1st',
+                        subjectCode: (parts[2] || '').toUpperCase(),
+                        subjectName: parts[3] || '',
+                        year: parseInt(parts[4]) || new Date().getFullYear()
+                    };
+
+                    // Try to guess category from course name
+                    for (const [cat, courses] of Object.entries(COURSE_DATA)) {
+                        if (courses.includes(metadata.courseName)) {
+                            metadata.category = cat;
+                            break;
+                        }
+                    }
+
+                    return { file, metadata, status: 'pending', error: null };
+                });
+                setBulkFiles(newBulkFiles);
+            };
+
+            const processBulkUpload = async () => {
+                setUploading(true);
+                setError('');
+                
+                // 1. Get current DB state once at the start
+                let currentDb = [];
+                let dbSha = null;
+                try {
+                    const dbFetchRes = await githubFetch('database.json');
+                    if (dbFetchRes.ok) {
+                        const dbFetchData = await dbFetchRes.json();
+                        currentDb = JSON.parse(base64ToText(dbFetchData.content));
+                        dbSha = dbFetchData.sha;
+                    }
+                } catch (e) { console.error("Initial DB fetch failed", e); }
+
+                const updatedBulkFiles = [...bulkFiles];
+
+                for (let i = 0; i < updatedBulkFiles.length; i++) {
+                    if (updatedBulkFiles[i].status === 'success') continue;
+                    
+                    const item = updatedBulkFiles[i];
+                    updatedBulkFiles[i].status = 'uploading';
+                    setBulkFiles([...updatedBulkFiles]);
+
+                    try {
+                        const meta = item.metadata;
+                        const safeSubjectCode = meta.subjectCode.replace(/[^a-zA-Z0-9-]/g, '_').toUpperCase();
+                        const safeCourseName = meta.courseName.replace(/[^a-zA-Z0-9-]/g, '_').toLowerCase();
+                        const timestamp = Date.now() + i; // Offset to ensure unique IDs
+                        const filePath = `uploads/${safeCourseName}/${meta.semester}/${safeSubjectCode}_${timestamp}.pdf`;
+
+                        // 1. Upload PDF
+                        const base64Content = await fileToBase64(item.file);
+                        const pdfRes = await githubFetch(filePath, {
+                            method: 'PUT',
+                            body: JSON.stringify({
+                                message: `bulk: add ${safeSubjectCode}`,
+                                content: base64Content
+                            })
+                        });
+
+                        if (!pdfRes.ok) throw new Error("GitHub Upload Failed");
+                        const pdfData = await pdfRes.json();
+                        const downloadUrl = pdfData.content.download_url;
+
+                        // 2. Add to Local DB Array
+                        const newRecord = {
+                            id: timestamp.toString(),
+                            category: meta.category,
+                            courseName: meta.courseName,
+                            subjectCode: safeSubjectCode,
+                            subjectName: meta.subjectName || 'Unknown',
+                            year: meta.year,
+                            semester: meta.semester,
+                            createdAt: new Date().toISOString(),
+                            fileName: item.file.name,
+                            fileSize: item.file.size,
+                            downloadUrl: downloadUrl
+                        };
+                        currentDb.push(newRecord);
+
+                        updatedBulkFiles[i].status = 'success';
+                    } catch (err) {
+                        console.error(err);
+                        updatedBulkFiles[i].status = 'error';
+                        updatedBulkFiles[i].error = err.message;
+                    }
+                    setBulkFiles([...updatedBulkFiles]);
+                }
+
+                // 3. Update database.json ONCE at the end
+                try {
+                    // Re-fetch SHA just in case
+                    const dbRefetch = await githubFetch('database.json');
+                    if (dbRefetch.ok) {
+                        const refetchData = await dbRefetch.json();
+                        dbSha = refetchData.sha;
+                    }
+
+                    const dbBody = {
+                        message: `update: bulk publish ${updatedBulkFiles.filter(f => f.status === 'success').length} resources`,
+                        content: textToBase64(JSON.stringify(currentDb, null, 2))
+                    };
+                    if (dbSha) dbBody.sha = dbSha;
+
+                    const dbUpdateRes = await githubFetch('database.json', {
+                        method: 'PUT',
+                        body: JSON.stringify(dbBody)
+                    });
+
+                    if (!dbUpdateRes.ok) throw new Error('Database final sync failed');
+                    
+                    fetchDatabase();
+                } catch (err) {
+                    setError('Bulk files uploaded, but failed to sync database.json: ' + err.message);
                 } finally {
                     setUploading(false);
                 }
@@ -458,73 +584,187 @@
                         )}
 
                         {view === 'upload' && (
-                            <div className="max-w-2xl mx-auto glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-700/50 relative overflow-hidden">
-                                <div className="absolute -top-32 -right-32 w-64 h-64 bg-cyan-500/10 blur-[80px] pointer-events-none rounded-full"></div>
-                                
-                                <h2 className="text-2xl font-black text-white mb-6">Publish to GitHub</h2>
-                                
-                                <form onSubmit={handleUpload} className="space-y-6 relative z-10">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div className="max-w-4xl mx-auto space-y-6">
+                                <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-700/50 relative overflow-hidden">
+                                    <div className="absolute -top-32 -right-32 w-64 h-64 bg-cyan-500/10 blur-[80px] pointer-events-none rounded-full"></div>
+                                    
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Course Category</label>
-                                            <select required className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-medium cursor-pointer" value={uploadForm.category} onChange={e => setUploadForm({...uploadForm, category: e.target.value, courseName: ''})}>
-                                                <option value="" disabled>Select Category</option>
-                                                {Object.keys(COURSE_DATA).map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                                            </select>
+                                            <h2 className="text-2xl font-black text-white">Publish to GitHub</h2>
+                                            <p className="text-slate-400 text-sm">Upload single or multiple resources</p>
                                         </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Course Name</label>
-                                            <select required disabled={!uploadForm.category} className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-medium cursor-pointer disabled:opacity-50" value={uploadForm.courseName} onChange={e => setUploadForm({...uploadForm, courseName: e.target.value})}>
-                                                <option value="" disabled>Select Course Name</option>
-                                                {uploadForm.category && COURSE_DATA[uploadForm.category].map(course => <option key={course} value={course}>{course}</option>)}
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Subject Code</label>
-                                            <input type="text" required className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-medium" placeholder="CS-301" value={uploadForm.subjectCode} onChange={e => setUploadForm({...uploadForm, subjectCode: e.target.value})} />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Subject Name</label>
-                                            <input type="text" required className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-medium" placeholder="Data Structures" value={uploadForm.subjectName} onChange={e => setUploadForm({...uploadForm, subjectName: e.target.value})} />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Semester</label>
-                                            <select className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-medium cursor-pointer" value={uploadForm.semester} onChange={e => setUploadForm({...uploadForm, semester: e.target.value})}>
-                                                {SEMESTERS.map(s => <option key={s} value={s}>{s}</option>)}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Exam Year</label>
-                                            <input type="number" required className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-medium" value={uploadForm.year} onChange={e => setUploadForm({...uploadForm, year: e.target.value})} />
+                                        <div className="flex bg-slate-900/80 p-1 rounded-xl border border-slate-800">
+                                            <button 
+                                                onClick={() => { setViewMode('single'); setBulkFiles([]); }}
+                                                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${viewMode === 'single' ? 'bg-cyan-500 text-[#0B1120]' : 'text-slate-500 hover:text-slate-300'}`}
+                                            >
+                                                Single
+                                            </button>
+                                            <button 
+                                                onClick={() => setViewMode('bulk')}
+                                                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${viewMode === 'bulk' ? 'bg-cyan-500 text-[#0B1120]' : 'text-slate-500 hover:text-slate-300'}`}
+                                            >
+                                                Bulk (Auto)
+                                            </button>
                                         </div>
                                     </div>
-
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">PDF Document</label>
-                                        <input type="file" ref={fileInputRef} className="hidden" accept="application/pdf" onChange={handleFileChange} />
-                                        <div 
-                                            onClick={() => fileInputRef.current.click()}
-                                            className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${uploadForm.file ? 'border-cyan-500 bg-cyan-500/5' : 'border-slate-700 bg-slate-900/50 hover:border-cyan-500/50'}`}
-                                        >
-                                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-all ${uploadForm.file ? 'bg-cyan-500 text-[#0B1120]' : 'bg-slate-800 text-slate-400'}`}>
-                                                {uploadForm.file ? <Icons.Check /> : <Icons.FileText />}
+                                    
+                                    {viewMode === 'single' ? (
+                                        <form onSubmit={handleUpload} className="space-y-6 relative z-10">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Course Category</label>
+                                                    <select required className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-medium cursor-pointer" value={uploadForm.category} onChange={e => setUploadForm({...uploadForm, category: e.target.value, courseName: ''})}>
+                                                        <option value="" disabled>Select Category</option>
+                                                        {Object.keys(COURSE_DATA).map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Course Name</label>
+                                                    <select required disabled={!uploadForm.category} className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-medium cursor-pointer disabled:opacity-50" value={uploadForm.courseName} onChange={e => setUploadForm({...uploadForm, courseName: e.target.value})}>
+                                                        <option value="" disabled>Select Course Name</option>
+                                                        {uploadForm.category && COURSE_DATA[uploadForm.category].map(course => <option key={course} value={course}>{course}</option>)}
+                                                    </select>
+                                                </div>
                                             </div>
-                                            <p className="font-bold text-white mb-1">{uploadForm.file ? uploadForm.file.name : 'Select PDF File'}</p>
-                                            <p className="text-xs text-slate-500">Max size: {MAX_FILE_SIZE_MB}MB</p>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Subject Code</label>
+                                                    <input type="text" required className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-medium" placeholder="CS-301" value={uploadForm.subjectCode} onChange={e => setUploadForm({...uploadForm, subjectCode: e.target.value})} />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Subject Name</label>
+                                                    <input type="text" required className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-medium" placeholder="Data Structures" value={uploadForm.subjectName} onChange={e => setUploadForm({...uploadForm, subjectName: e.target.value})} />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Semester</label>
+                                                    <select className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-medium cursor-pointer" value={uploadForm.semester} onChange={e => setUploadForm({...uploadForm, semester: e.target.value})}>
+                                                        {SEMESTERS.map(s => <option key={s} value={s}>{s}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Exam Year</label>
+                                                    <input type="number" required className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-medium" value={uploadForm.year} onChange={e => setUploadForm({...uploadForm, year: e.target.value})} />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">PDF Document</label>
+                                                <input type="file" ref={fileInputRef} className="hidden" accept="application/pdf" onChange={handleFileChange} />
+                                                <div 
+                                                    onClick={() => fileInputRef.current.click()}
+                                                    className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${uploadForm.file ? 'border-cyan-500 bg-cyan-500/5' : 'border-slate-700 bg-slate-900/50 hover:border-cyan-500/50'}`}
+                                                >
+                                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-all ${uploadForm.file ? 'bg-cyan-500 text-[#0B1120]' : 'bg-slate-800 text-slate-400'}`}>
+                                                        {uploadForm.file ? <Icons.Check /> : <Icons.FileText />}
+                                                    </div>
+                                                    <p className="font-bold text-white mb-1">{uploadForm.file ? uploadForm.file.name : 'Select PDF File'}</p>
+                                                    <p className="text-xs text-slate-500">Max size: {MAX_FILE_SIZE_MB}MB</p>
+                                                </div>
+                                            </div>
+
+                                            <button 
+                                                type="submit" 
+                                                disabled={uploading || !uploadForm.file}
+                                                className={`w-full py-4 rounded-xl font-bold uppercase tracking-widest transition-all ${uploading || !uploadForm.file ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-cyan-500 text-[#0f172a] hover:bg-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.3)]'}`}
+                                            >
+                                                {uploading ? 'Processing & Uploading to GitHub...' : 'Upload to Git Database'}
+                                            </button>
+                                        </form>
+                                    ) : (
+                                        <div className="space-y-6 relative z-10">
+                                            <div className="bg-slate-900/80 border border-indigo-500/20 p-4 rounded-2xl text-xs text-indigo-300 mb-4 leading-relaxed">
+                                                <strong className="text-indigo-400">💡 Pro Tip:</strong> To auto-fill metadata, rename your files as: <br/>
+                                                <code className="text-cyan-400 bg-black/30 px-2 py-0.5 rounded mt-1 inline-block font-mono">CourseName_Semester_SubjectCode_SubjectName_Year.pdf</code><br/>
+                                                Example: <code className="text-slate-400">BCA_1st_CS-101_Programming-C_2024.pdf</code>
+                                            </div>
+
+                                            <input type="file" multiple ref={fileInputRef} className="hidden" accept="application/pdf" onChange={handleBulkFileSelect} />
+                                            
+                                            {bulkFiles.length === 0 ? (
+                                                <div 
+                                                    onClick={() => fileInputRef.current.click()}
+                                                    className="border-2 border-dashed border-slate-700 bg-slate-900/50 hover:border-cyan-500/50 rounded-2xl p-12 text-center transition-all cursor-pointer group"
+                                                >
+                                                    <div className="w-16 h-16 bg-slate-800 group-hover:bg-cyan-500/10 rounded-3xl flex items-center justify-center mx-auto mb-4 text-slate-500 group-hover:text-cyan-400 transition-all">
+                                                        <Icons.Upload />
+                                                    </div>
+                                                    <p className="text-lg font-bold text-white mb-2">Select 20+ PDF Files</p>
+                                                    <p className="text-sm text-slate-500">Files will be queued for automated processing</p>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-4">
+                                                    <div className="flex justify-between items-center">
+                                                        <h3 className="text-sm font-bold text-slate-300 uppercase tracking-widest">{bulkFiles.length} Files Selected</h3>
+                                                        <button onClick={() => setBulkFiles([])} className="text-xs text-red-400 hover:text-red-300 font-bold uppercase">Clear All</button>
+                                                    </div>
+                                                    
+                                                    <div className="max-h-[400px] overflow-y-auto pr-2 space-y-2 hide-scrollbar">
+                                                        {bulkFiles.map((item, idx) => (
+                                                            <div key={idx} className={`p-4 rounded-xl border flex items-center justify-between gap-4 transition-all ${item.status === 'success' ? 'bg-emerald-500/10 border-emerald-500/20' : item.status === 'error' ? 'bg-red-500/10 border-red-500/20' : 'bg-slate-800/50 border-slate-700'}`}>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="flex items-center gap-2 mb-1">
+                                                                        <span className={`w-2 h-2 rounded-full ${item.status === 'success' ? 'bg-emerald-500' : item.status === 'error' ? 'bg-red-500' : item.status === 'uploading' ? 'bg-cyan-400 animate-pulse' : 'bg-slate-500'}`}></span>
+                                                                        <p className="text-sm font-bold text-white truncate">{item.file.name}</p>
+                                                                    </div>
+                                                                    <div className="flex gap-2 flex-wrap">
+                                                                        <span className="text-[10px] bg-black/30 px-1.5 py-0.5 rounded text-slate-400">{item.metadata.courseName || '???'}</span>
+                                                                        <span className="text-[10px] bg-black/30 px-1.5 py-0.5 rounded text-slate-400">{item.metadata.semester || '???'}</span>
+                                                                        <span className="text-[10px] bg-black/30 px-1.5 py-0.5 rounded text-slate-400">{item.metadata.subjectCode || '???'}</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="text-right shrink-0">
+                                                                    {item.status === 'success' ? (
+                                                                        <span className="text-emerald-400 text-xs font-bold uppercase tracking-widest">Done</span>
+                                                                    ) : item.status === 'error' ? (
+                                                                        <span className="text-red-400 text-xs font-bold uppercase tracking-widest" title={item.error}>Failed</span>
+                                                                    ) : item.status === 'uploading' ? (
+                                                                        <span className="text-cyan-400 text-xs font-bold uppercase tracking-widest">Uploading...</span>
+                                                                    ) : (
+                                                                        <span className="text-slate-500 text-xs font-bold uppercase tracking-widest">Pending</span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+
+                                                    <button 
+                                                        onClick={processBulkUpload}
+                                                        disabled={uploading || bulkFiles.every(f => f.status === 'success')}
+                                                        className={`w-full py-4 rounded-xl font-black uppercase tracking-widest transition-all ${uploading ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-gradient-to-r from-cyan-500 to-indigo-600 text-white hover:scale-[1.02] active:scale-95 shadow-xl shadow-cyan-500/20'}`}
+                                                    >
+                                                        {uploading ? 'Processing Batch...' : `Start Bulk Upload (${bulkFiles.filter(f => f.status === 'pending').length} remaining)`}
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                {viewMode === 'bulk' && bulkFiles.length > 0 && (
+                                    <div className="glass-panel p-6 rounded-3xl border border-indigo-500/10">
+                                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Upload Summary</h3>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800">
+                                                <p className="text-xs text-slate-500 uppercase font-bold mb-1">Total</p>
+                                                <p className="text-2xl font-black text-white">{bulkFiles.length}</p>
+                                            </div>
+                                            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800">
+                                                <p className="text-xs text-emerald-500/70 uppercase font-bold mb-1">Success</p>
+                                                <p className="text-2xl font-black text-emerald-400">{bulkFiles.filter(f => f.status === 'success').length}</p>
+                                            </div>
+                                            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800">
+                                                <p className="text-xs text-red-500/70 uppercase font-bold mb-1">Failed</p>
+                                                <p className="text-2xl font-black text-red-400">{bulkFiles.filter(f => f.status === 'error').length}</p>
+                                            </div>
+                                            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800">
+                                                <p className="text-xs text-cyan-500/70 uppercase font-bold mb-1">Progress</p>
+                                                <p className="text-2xl font-black text-cyan-400">{Math.round((bulkFiles.filter(f => f.status === 'success').length / bulkFiles.length) * 100)}%</p>
+                                            </div>
                                         </div>
                                     </div>
-
-                                    <button 
-                                        type="submit" 
-                                        disabled={uploading || !uploadForm.file}
-                                        className={`w-full py-4 rounded-xl font-bold uppercase tracking-widest transition-all ${uploading || !uploadForm.file ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-cyan-500 text-[#0f172a] hover:bg-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.3)]'}`}
-                                    >
-                                        {uploading ? 'Processing & Uploading to GitHub...' : 'Upload to Git Database'}
-                                    </button>
-                                </form>
+                                )}
                             </div>
                         )}
                     </main>

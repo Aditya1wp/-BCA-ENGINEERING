@@ -175,7 +175,7 @@
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         </div>
                         <p id="u-file-name" class="text-white font-bold">Click to browse PDF</p>
-                        <p class="text-xs text-slate-500">Max 5MB</p>
+                        <p class="text-xs text-slate-500">Max 3MB (Vercel Limit)</p>
                     </div>
                 </div>
                 <button type="submit" id="u-submit-btn" disabled class="w-full py-4 rounded-xl font-bold text-white uppercase tracking-widest bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700 transition-all">
@@ -251,8 +251,8 @@
     fileInput.onchange = (e) => {
         selectedFile = e.target.files[0];
         if (selectedFile) {
-            if (selectedFile.size > 5 * 1024 * 1024) {
-                alert("File too large (Max 5MB)");
+            if (selectedFile.size > 3 * 1024 * 1024) {
+                alert("File too large (Max 3MB for direct upload). Please compress the PDF or upload a smaller version.");
                 return;
             }
             fileNameDisp.textContent = selectedFile.name;
@@ -302,8 +302,19 @@
                     submitBtn.textContent = "Select a file to continue";
                     submitBtn.className = "w-full py-4 rounded-xl font-bold text-white uppercase tracking-widest bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700 transition-all";
                 } else {
-                    const err = await res.json();
-                    alert("Error: " + (err.error || "Upload failed"));
+                    let errorMsg = "Upload failed";
+                    try {
+                        const err = await res.json();
+                        errorMsg = err.error || errorMsg;
+                    } catch (e) {
+                        // Handle non-JSON response (like Vercel's 413 "Request Entity Too Large")
+                        if (res.status === 413) {
+                            errorMsg = "File is too large for the server to process. Please try a smaller PDF (under 3MB).";
+                        } else {
+                            errorMsg = `Server Error (${res.status}): ${res.statusText}`;
+                        }
+                    }
+                    alert("Error: " + errorMsg);
                     submitBtn.disabled = false;
                     submitBtn.textContent = "Submit Paper";
                 }

@@ -1,3 +1,11 @@
+export const config = {
+    api: {
+        bodyParser: {
+            sizeLimit: '4.5mb',
+        },
+    },
+};
+
 export default async function handler(req, res) {
     // Enable CORS if needed
     res.setHeader('Access-Control-Allow-Origin', '*');
