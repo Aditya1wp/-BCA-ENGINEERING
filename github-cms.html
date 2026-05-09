@@ -116,6 +116,7 @@
                 file: null
             });
             const [renameFolder, setRenameFolder] = useState({ oldName: '', newName: '', showModal: false });
+            const [editDoc, setEditDoc] = useState({ doc: null, show: false });
 
             // Initialize
             useEffect(() => {
@@ -554,6 +555,53 @@
                 }
             };
 
+            const handleUpdateDoc = async (e) => {
+                e.preventDefault();
+                const doc = editDoc.doc;
+                if (!doc) return;
+
+                setLoading(true);
+                setError('');
+                try {
+                    const dbFetchRes = await githubFetch('database.json');
+                    if (!dbFetchRes.ok) throw new Error("Failed to fetch database.json");
+                    
+                    const dbData = await dbFetchRes.json();
+                    let currentDb = JSON.parse(base64ToText(dbData.content));
+                    
+                    const updatedDb = currentDb.map(d => {
+                        if (d.id === doc.id) {
+                            return { 
+                                ...d, 
+                                subjectName: doc.subjectName,
+                                subjectCode: doc.subjectCode.replace(/[^a-zA-Z0-9-]/g, '_').toUpperCase(),
+                                year: parseInt(doc.year),
+                                semester: doc.semester
+                            };
+                        }
+                        return d;
+                    });
+
+                    const dbUpdateRes = await githubFetch('database.json', {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            message: `update: edit resource metadata ${doc.subjectCode}`,
+                            content: textToBase64(JSON.stringify(updatedDb, null, 2)),
+                            sha: dbData.sha
+                        })
+                    });
+
+                    if (!dbUpdateRes.ok) throw new Error("Failed to sync database.json after update");
+
+                    setDocuments(updatedDb);
+                    setEditDoc({ doc: null, show: false });
+                } catch (err) {
+                    setError(err.message || 'Update failed.');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
 
             // --- UI COMPONENTS ---
             
@@ -701,6 +749,77 @@
                         </div>
                     )}
 
+                    {/* Edit Document Modal */}
+                    {editDoc.show && editDoc.doc && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+                            <div className="glass-panel p-8 rounded-3xl w-full max-w-lg border-cyan-500/30">
+                                <h3 className="text-xl font-black text-white mb-6 flex items-center gap-2">
+                                    <Icons.Edit /> Edit Resource Metadata
+                                </h3>
+                                <form onSubmit={handleUpdateDoc} className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Subject Code</label>
+                                            <input 
+                                                type="text"
+                                                required
+                                                className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:ring-2 focus:ring-cyan-500 font-mono text-sm"
+                                                value={editDoc.doc.subjectCode}
+                                                onChange={e => setEditDoc({...editDoc, doc: {...editDoc.doc, subjectCode: e.target.value}})}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Exam Year</label>
+                                            <input 
+                                                type="number"
+                                                required
+                                                className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:ring-2 focus:ring-cyan-500"
+                                                value={editDoc.doc.year}
+                                                onChange={e => setEditDoc({...editDoc, doc: {...editDoc.doc, year: e.target.value}})}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Subject Name</label>
+                                        <input 
+                                            type="text"
+                                            required
+                                            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:ring-2 focus:ring-cyan-500"
+                                            value={editDoc.doc.subjectName}
+                                            onChange={e => setEditDoc({...editDoc, doc: {...editDoc.doc, subjectName: e.target.value}})}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Semester</label>
+                                        <select 
+                                            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:ring-2 focus:ring-cyan-500"
+                                            value={editDoc.doc.semester}
+                                            onChange={e => setEditDoc({...editDoc, doc: {...editDoc.doc, semester: e.target.value}})}
+                                        >
+                                            {SEMESTERS.map(s => <option key={s} value={s}>{s}</option>)}
+                                        </select>
+                                    </div>
+                                    
+                                    <div className="flex gap-3 mt-8">
+                                        <button 
+                                            type="button"
+                                            onClick={() => setEditDoc({doc: null, show: false})}
+                                            className="flex-1 py-3 rounded-xl font-bold text-slate-400 hover:bg-slate-800 transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button 
+                                            type="submit"
+                                            className="flex-1 py-3 rounded-xl font-bold bg-cyan-500 text-[#0B1120] hover:bg-cyan-400 shadow-lg shadow-cyan-500/20 transition-all"
+                                        >
+                                            Save Changes
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
                     <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8">
                         {error && (
                             <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex gap-3 text-red-400 text-sm items-center font-medium">
@@ -762,6 +881,13 @@
                                                 <div className="flex items-center justify-between pt-4 border-t border-slate-800/80">
                                                     <span className="text-xs text-slate-500 font-mono">{(doc.fileSize / 1024).toFixed(0)} KB</span>
                                                     <div className="flex gap-2">
+                                                        <button 
+                                                            onClick={() => setEditDoc({ doc: {...doc}, show: true })}
+                                                            className="p-2 text-slate-500 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-all"
+                                                            title="Edit Details"
+                                                        >
+                                                            <Icons.Edit />
+                                                        </button>
                                                         <button 
                                                             onClick={() => handleDelete(doc)}
                                                             className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
