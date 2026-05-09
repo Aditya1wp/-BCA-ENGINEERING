@@ -136,8 +136,6 @@
         const docTypeLabel = docType === 'notes' ? 'Notes' : 'PYQ';
 
         document.getElementById('nav-title').textContent = `${courseName.toUpperCase()} ${docTypeLabel}`;
-        document.getElementById('page-title').textContent = `${courseName.toUpperCase()} — ${docTypeLabel} Archive`;
-        document.getElementById('page-desc').textContent = `Select a Paper Code and Year to view the document`;
 
         // ===== STATE =====
         let allDocs = [];
@@ -157,10 +155,8 @@
             if (cached) {
                 try {
                     const { data, timestamp } = JSON.parse(cached);
-                    if (Date.now() - timestamp < 15 * 60 * 1000) { // 15 min cache
-                        console.log("Instant load from cache");
+                    if (Date.now() - timestamp < 15 * 60 * 1000) { 
                         processData(data);
-                        // Refresh in background
                         fetchFromServer(RAW_URL, PROXY_URL, CACHE_KEY, true);
                         return;
                     }
@@ -171,23 +167,56 @@
             await fetchFromServer(RAW_URL, PROXY_URL, CACHE_KEY);
         }
 
+        async function fetchWithTimeout(resource, options = {}) {
+            const { timeout = 10000 } = options;
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            const response = await fetch(resource, {
+                ...options,
+                signal: controller.signal
+            });
+            clearTimeout(id);
+            return response;
+        }
+
         async function fetchFromServer(rawUrl, proxyUrl, cacheKey, isBackground = false) {
+            let lastError = null;
             try {
                 let data = null;
                 
-                // Try RAW CDN first (fastest)
+                // Try RAW CDN first
                 try {
-                    const res = await fetch(rawUrl);
-                    if (res.ok) data = await res.json();
-                } catch(e) { console.warn("Raw fetch failed, trying proxy..."); }
-
-                // Fallback to Proxy if Raw failed
-                if (!data) {
-                    const res = await fetch(proxyUrl);
-                    if (res.ok) data = await res.json();
+                    console.log("Attempting RAW CDN fetch...");
+                    const res = await fetchWithTimeout(rawUrl + '?t=' + Date.now(), { timeout: 8000 });
+                    if (res.ok) {
+                        data = await res.json();
+                        console.log("RAW CDN success");
+                    } else {
+                        console.warn("RAW CDN returned status:", res.status);
+                    }
+                } catch(e) { 
+                    console.warn("RAW CDN failed:", e.message);
+                    lastError = "CDN: " + e.message;
                 }
 
-                if (!data) throw new Error("Could not retrieve database");
+                // Fallback to Proxy
+                if (!data) {
+                    try {
+                        console.log("Attempting Proxy fetch...");
+                        const res = await fetchWithTimeout(proxyUrl, { timeout: 10000 });
+                        if (res.ok) {
+                            data = await res.json();
+                            console.log("Proxy success");
+                        } else {
+                            console.warn("Proxy returned status:", res.status);
+                        }
+                    } catch(e) {
+                        console.error("Proxy failed:", e.message);
+                        lastError = (lastError ? lastError + " | " : "") + "Proxy: " + e.message;
+                    }
+                }
+
+                if (!data) throw new Error(lastError || "Could not retrieve database from any source");
 
                 // Filter
                 const filtered = data.filter(doc => {
@@ -205,15 +234,20 @@
                 processData(filtered);
 
             } catch (err) {
-                console.error('Fetch Error:', err);
+                console.error('Final Fetch Error:', err);
                 if (!isBackground && allDocs.length === 0) {
                     document.getElementById('loading-state').innerHTML = `
                         <div class="inline-flex w-16 h-16 bg-red-500/10 rounded-full items-center justify-center mb-4 border border-red-500/20">
                             <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </div>
-                        <p class="text-red-400 font-medium mb-2">Connection Problem</p>
-                        <p class="text-slate-500 text-xs mb-4">We couldn't reach the database.</p>
-                        <button onclick="location.reload()" class="px-6 py-2 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700 transition-colors text-sm font-bold">Try Again</button>
+                        <p class="text-red-400 font-bold mb-1">Database Connection Failed</p>
+                        <p class="text-slate-500 text-xs px-10 mb-6 leading-relaxed">
+                            Error Details: ${err.message}<br>
+                            Please check your internet connection or GitHub availability.
+                        </p>
+                        <button onclick="location.reload()" class="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all font-bold text-xs uppercase tracking-widest shadow-lg shadow-indigo-500/20">
+                            Force Reload
+                        </button>
                     `;
                 }
             }
