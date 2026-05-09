@@ -371,13 +371,13 @@
         // ===== SELECT SUBJECT =====
         function selectSubject(sub) {
             selectedSubject = sub;
-            renderSubjectPills();
+            renderSubjects();
             showDocument();
         }
 
         // ===== SHOW DOCUMENT =====
         function showDocument() {
-            const doc = allDocs.find(d => d.subjectCode === selectedSubject && d.year === selectedYear);
+            const doc = allDocs.find(d => d.subjectCode === selectedSubject && parseInt(d.year) === selectedYear);
             const resultSection = document.getElementById('result-section');
             const promptState = document.getElementById('prompt-state');
 
@@ -403,7 +403,8 @@
 
             // PDF viewer
             const pdfFrame = document.getElementById('pdf-frame');
-            pdfFrame.src = `https://docs.google.com/gview?url=${encodeURIComponent(doc.downloadUrl)}&embedded=true`;
+            // Using direct URL for better performance and reliability in modern browsers
+            pdfFrame.src = doc.downloadUrl;
         }
 
         // ===== INIT =====
