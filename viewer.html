@@ -403,8 +403,8 @@
 
             // PDF viewer
             const pdfFrame = document.getElementById('pdf-frame');
-            // Using direct URL for better performance and reliability in modern browsers
-            pdfFrame.src = doc.downloadUrl;
+            // Using Google GView to prevent automatic downloads and ensure in-browser viewing
+            pdfFrame.src = `https://docs.google.com/gview?url=${encodeURIComponent(doc.downloadUrl)}&embedded=true`;
         }
 
         // ===== INIT =====
