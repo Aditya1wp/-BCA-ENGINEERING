@@ -455,8 +455,11 @@
             };
 
             const filteredDocs = useMemo(() => {
-                ).filter(doc => view === 'moderation' ? doc.verified === false : (doc.verified !== false)) // Filter based on view
-                 .sort((a, b) => b.id - a.id); // Sort newest first
+                return documents.filter(doc => 
+                    doc.subjectCode.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                    doc.subjectName.toLowerCase().includes(searchQuery.toLowerCase())
+                ).filter(doc => view === 'moderation' ? doc.verified === false : (doc.verified !== false))
+                 .sort((a, b) => b.id - a.id);
             }, [documents, searchQuery, view]);
 
             const handleDelete = async (doc) => {
