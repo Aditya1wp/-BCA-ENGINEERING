@@ -65,6 +65,7 @@
             Trash: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>,
             Edit: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>,
             Folder: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>,
+            Refresh: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>,
         };
 
         const MAX_FILE_SIZE_MB = 10;
@@ -92,7 +93,7 @@
 
         function App() {
             // State
-            const [config, setConfig] = useState({ token: '', owner: '', repo: '' });
+            const [config, setConfig] = useState({ token: '', owner: '', repo: '', branch: 'main' });
             const [isConfigured, setIsConfigured] = useState(false);
             const [view, setView] = useState('dashboard'); // 'dashboard', 'upload', 'settings'
             const [documents, setDocuments] = useState([]);
@@ -124,7 +125,7 @@
                 if (savedConfig) {
                     const parsed = JSON.parse(savedConfig);
                     if (parsed.token && parsed.owner && parsed.repo) {
-                        setConfig(parsed);
+                        setConfig({branch: 'main', ...parsed});
                         setIsConfigured(true);
                     } else {
                         setView('settings');
@@ -144,7 +145,7 @@
             }, [isConfigured, view]);
 
             const githubFetch = async (path, options = {}) => {
-                const res = await fetch(`https://api.github.com/repos/${config.owner}/${config.repo}/contents/${path}`, {
+                const res = await fetch(`https://api.github.com/repos/${config.owner}/${config.repo}/contents/${path}?ref=${config.branch || 'main'}`, {
                     ...options,
                     headers: {
                         'Authorization': `Bearer ${config.token}`,
@@ -228,7 +229,8 @@
                         method: 'PUT',
                         body: JSON.stringify({
                             message: `feat: add resource ${safeSubjectCode} to ${safeCourseName}`,
-                            content: base64Content
+                            content: base64Content,
+                            branch: config.branch
                         })
                     });
 
@@ -268,7 +270,8 @@
 
                     const dbBody = {
                         message: `update: append ${safeSubjectCode} to database.json`,
-                        content: textToBase64(JSON.stringify(currentDb, null, 2))
+                        content: textToBase64(JSON.stringify(currentDb, null, 2)),
+                        branch: config.branch
                     };
                     if (dbSha) dbBody.sha = dbSha;
 
@@ -385,7 +388,8 @@
                             method: 'PUT',
                             body: JSON.stringify({
                                 message: `bulk: add ${safeSubjectCode}`,
-                                content: base64Content
+                                content: base64Content,
+                                branch: config.branch
                             })
                         });
 
@@ -424,7 +428,8 @@
 
                     const dbBody = {
                         message: `update: bulk publish ${updatedBulkFiles.filter(f => f.status === 'success').length} resources`,
-                        content: textToBase64(JSON.stringify(currentDb, null, 2))
+                        content: textToBase64(JSON.stringify(currentDb, null, 2)),
+                        branch: config.branch
                     };
                     if (dbSha) dbBody.sha = dbSha;
 
@@ -459,8 +464,8 @@
                     // Example: https://raw.githubusercontent.com/owner/repo/main/uploads/bca/1st/file.pdf
                     // We need 'uploads/bca/1st/file.pdf'
                     const urlParts = doc.downloadUrl.split('/');
-                    const mainIndex = urlParts.indexOf('main');
-                    if (mainIndex === -1) throw new Error("Could not determine file path from URL. Is it in the 'main' branch?");
+                    const mainIndex = urlParts.indexOf(config.branch || 'main');
+                    if (mainIndex === -1) throw new Error("Could not determine file path from URL. Is it in the repository?");
                     const filePath = urlParts.slice(mainIndex + 1).join('/');
 
                     // 2. Fetch file to get SHA
@@ -474,7 +479,8 @@
                             method: 'DELETE',
                             body: JSON.stringify({
                                 message: `refactor: delete resource ${doc.subjectCode}`,
-                                sha: sha
+                                sha: sha,
+                                branch: config.branch
                             })
                         });
                         if (!delRes.ok) console.warn("Failed to delete physical file, it might already be gone.");
@@ -494,7 +500,8 @@
                         body: JSON.stringify({
                             message: `update: remove ${doc.subjectCode} from database.json`,
                             content: textToBase64(JSON.stringify(updatedDb, null, 2)),
-                            sha: dbData.sha
+                            sha: dbData.sha,
+                            branch: config.branch
                         })
                     });
 
@@ -539,7 +546,8 @@
                         body: JSON.stringify({
                             message: `refactor: rename course ${renameFolder.oldName} to ${renameFolder.newName}`,
                             content: textToBase64(JSON.stringify(updatedDb, null, 2)),
-                            sha: dbData.sha
+                            sha: dbData.sha,
+                            branch: config.branch
                         })
                     });
 
@@ -587,7 +595,8 @@
                         body: JSON.stringify({
                             message: `update: edit resource metadata ${doc.subjectCode}`,
                             content: textToBase64(JSON.stringify(updatedDb, null, 2)),
-                            sha: dbData.sha
+                            sha: dbData.sha,
+                            branch: config.branch
                         })
                     });
 
@@ -659,6 +668,16 @@
                                         />
                                     </div>
                                 </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Branch</label>
+                                    <input 
+                                        type="text" 
+                                        className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-white font-medium"
+                                        placeholder="e.g. main"
+                                        value={config.branch}
+                                        onChange={e => setConfig({...config, branch: e.target.value})}
+                                    />
+                                </div>
                                 <button type="submit" className="w-full py-4 mt-4 rounded-xl font-bold transition-all duration-300 uppercase tracking-widest bg-cyan-500 text-[#0f172a] hover:bg-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.3)]">
                                     Connect Database
                                 </button>
@@ -685,8 +704,15 @@
                                 </h1>
                             </div>
                             <div className="flex items-center gap-3">
+                                <div className="text-right hidden md:block">
+                                    <p className="text-[10px] font-black text-cyan-400 uppercase tracking-widest leading-none mb-1">Connected Database</p>
+                                    <p className="text-xs font-bold text-white leading-none">{config.owner}/{config.repo} <span className="text-slate-500 font-medium">({config.branch})</span></p>
+                                </div>
                                 <button onClick={() => setView('settings')} className="p-2.5 rounded-full bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors" title="Settings">
                                     <Icons.Settings />
+                                </button>
+                                <button onClick={fetchDatabase} disabled={loading} className={`p-2.5 rounded-full bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors ${loading ? 'animate-spin' : ''}`} title="Refresh">
+                                    <Icons.Refresh />
                                 </button>
                                 {view === 'dashboard' ? (
                                     <button onClick={() => setView('upload')} className="flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm bg-cyan-500 text-[#0f172a] hover:bg-cyan-400 transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)]">

@@ -37,13 +37,15 @@
 
     <!-- Nav -->
     <nav class="fixed top-0 w-full z-50 glass-card border-b border-white/5 py-4 px-6 flex justify-between items-center">
-        <div class="flex items-center gap-4">
-            <button onclick="history.back()" class="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors group">
-                <svg class="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        <div class="flex items-center gap-3">
+            <button onclick="forceRefresh()" class="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/10 text-slate-400 hover:text-cyan-400 group" title="Refresh Data">
+                <svg class="w-5 h-5 group-active:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
             </button>
-                <img src="logo.png" alt="Logo" class="h-10 w-auto">
-                <span class="font-extrabold text-xl tracking-tighter logo-text">BCA <span class="text-cyan-400">ENGINEERING</span></span>
-
+            <button onclick="history.back()" class="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/10 text-slate-400 hover:text-white">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            </button>
+            <img src="logo.png" alt="Logo" class="h-10 w-auto">
+            <span class="font-extrabold text-xl tracking-tighter logo-text">BCA <span class="text-cyan-400">ENGINEERING</span></span>
         </div>
         <div class="text-lg font-bold uppercase tracking-wide text-white" id="nav-title">Loading...</div>
         <div class="w-24"></div>
@@ -154,7 +156,6 @@
         document.getElementById('nav-title').textContent = `${courseName.toUpperCase()} ${docTypeLabel}`;
 
         // ===== STATE =====
-        // ===== STATE =====
         let allDocs = [];
         let selectedYear = null;
         let selectedSubject = null;
@@ -181,6 +182,20 @@
             }
 
             // 2. No cache, fetch from server
+            await fetchFromServer(RAW_URL, PROXY_URL, CACHE_KEY);
+        }
+
+        async function forceRefresh() {
+            const CACHE_KEY = `bca_cache_${courseName}_${docType}`;
+            localStorage.removeItem(CACHE_KEY);
+            document.getElementById('loading-state').classList.remove('hidden');
+            document.getElementById('main-content').classList.add('hidden');
+            
+            const OWNER = 'Aditya1wp';
+            const REPO = 'bca-pyq-database';
+            const RAW_URL = `https://raw.githubusercontent.com/${OWNER}/${REPO}/main/database.json`;
+            const PROXY_URL = '/api/upload';
+            
             await fetchFromServer(RAW_URL, PROXY_URL, CACHE_KEY);
         }
 
@@ -298,21 +313,20 @@
             }).join('');
 
             // If selectedYear exists, ensure subject pills are rendered
-            if (selectedYear) renderSubjectPills();
+            if (selectedYear) renderSubjects();
         }
 
         // ===== SELECT YEAR =====
         function selectYear(yr) {
-            selectedYear = yr;
-            selectedSubject = null; // Reset subject when year changes
+            selectedYear = parseInt(yr);
+            renderSubjects();
             renderYearPills();
-            renderSubjectPills();
             document.getElementById('result-section').classList.add('hidden');
             document.getElementById('prompt-state').classList.remove('hidden');
         }
 
         // ===== RENDER SUBJECT PILLS (Step 2: Vertical) =====
-        function renderSubjectPills() {
+        function renderSubjects() {
             const container = document.getElementById('subject-pills');
             if (!selectedYear) {
                 container.innerHTML = '<div class="text-slate-600 text-xs text-center py-4 w-full">Select year first</div>';
@@ -320,7 +334,7 @@
             }
 
             // Filter docs for the selected year
-            const docsForYear = allDocs.filter(d => d.year === selectedYear);
+            const docsForYear = allDocs.filter(d => parseInt(d.year) === selectedYear);
             const subjects = [...new Set(docsForYear.map(d => d.subjectCode))].sort();
 
             container.innerHTML = subjects.map(sub => {
