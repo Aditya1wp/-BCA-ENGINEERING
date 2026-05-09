@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Viewer - BCA Engineering</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+        .shimmer-bar { background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Nav -->
+    <nav class="fixed top-0 w-full z-50 glass-card border-b border-white/5 py-4 px-6 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <button onclick="history.back()" class="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors group">
+                <svg class="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            </button>
+            <div class="hidden sm:flex items-center gap-2">
+                <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/20">Σ</div>
+                <span class="font-extrabold text-xl tracking-tighter">BCA <span class="text-cyan-400">ENGINEERING</span></span>
+            </div>
+        </div>
+        <div class="text-lg font-bold uppercase tracking-wide text-white" id="nav-title">Loading...</div>
+        <div class="w-24"></div>
+    </nav>
+
+    <main class="flex-1 max-w-6xl mx-auto w-full px-4 md:px-8 pt-24 pb-12">
+
+        <!-- Loading -->
+        <div id="loading-state" class="py-20 text-center space-y-4">
+            <div class="max-w-md mx-auto space-y-3">
+                <div class="h-10 shimmer-bar rounded-xl"></div>
+                <div class="h-6 shimmer-bar rounded-lg w-3/4 mx-auto"></div>
+                <div class="h-14 shimmer-bar rounded-2xl mt-6"></div>
+                <div class="h-14 shimmer-bar rounded-2xl"></div>
+            </div>
+            <p class="text-slate-500 text-sm mt-8 animate-pulse">Fetching documents from GitHub...</p>
+        </div>
+
+        <!-- Empty -->
+        <div id="empty-state" class="hidden py-28 text-center fade-in">
+            <div class="inline-flex w-20 h-20 bg-slate-800/50 rounded-full items-center justify-center mb-6 border border-slate-700/50">
+                <svg class="w-10 h-10 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            </div>
+            <h3 class="text-2xl font-black text-slate-300 mb-2">No Documents Found</h3>
+            <p class="text-slate-500">No resources uploaded for this course yet. Be the first to contribute!</p>
+        </div>
+
+        <!-- Main Content -->
+        <div id="main-content" class="hidden fade-in flex flex-col gap-8">
+
+            <!-- STEP 1: Select Paper Code (Horizontal Top Bar) -->
+            <div class="text-center">
+                <h3 class="text-xs font-black text-cyan-400 tracking-[0.3em] uppercase mb-4 flex items-center justify-center gap-2">
+                    Select Paper Code
+                </h3>
+                <div id="subject-pills" class="flex flex-wrap justify-center gap-2 md:gap-3">
+                    <!-- JS fills -->
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-8 items-start">
+                
+                <!-- STEP 2: Select Year (Vertical Sidebar) -->
+                <div class="w-full md:w-32 lg:w-40 shrink-0 sticky top-28">
+                    <h3 class="text-xs font-black text-emerald-400 tracking-[0.3em] uppercase mb-4 text-center md:text-left">
+                        Select Year
+                    </h3>
+                    <div id="year-pills" class="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible pb-4 md:pb-0">
+                        <div class="text-slate-600 text-xs text-center py-4 w-full">Select subject first</div>
+                    </div>
+                </div>
+
+                <!-- STEP 3: RESULT: PDF Display + Download -->
+                <div class="flex-1 w-full">
+                    <div id="result-section" class="hidden fade-in space-y-6">
+                        <!-- Info Bar -->
+                        <div class="glass-card rounded-2xl p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-white/5">
+                            <div>
+                                <p class="text-[10px] text-slate-500 uppercase tracking-widest font-black mb-1">Viewing Archive</p>
+                                <h3 id="result-title" class="text-lg font-black text-white"></h3>
+                                <p id="result-meta" class="text-xs text-slate-400 mt-1"></p>
+                            </div>
+                            <a id="download-btn" href="#" download class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 text-cyan-400 font-black text-xs uppercase tracking-widest hover:bg-cyan-500 hover:text-[#0f172a] transition-all shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                Download
+                            </a>
+                        </div>
+
+                        <!-- PDF Viewer -->
+                        <div class="glass-card rounded-[2rem] overflow-hidden border-white/5 relative" style="height: 75vh;">
+                            <div class="bg-slate-900/80 px-4 py-2.5 flex items-center gap-3 border-b border-white/5">
+                                <div class="flex gap-1.5">
+                                    <div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+                                    <div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+                                    <div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+                                </div>
+                                <span id="viewer-label" class="text-[10px] font-mono text-slate-500 flex-1 text-center truncate tracking-tight uppercase"></span>
+                            </div>
+                            <div class="w-full h-full relative">
+                                <iframe id="pdf-frame" class="w-full h-full border-0" src="about:blank"></iframe>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Welcome/Prompt State -->
+                    <div id="prompt-state" class="py-20 text-center glass-card rounded-[2rem] border-dashed border-white/5">
+                        <div class="inline-flex w-16 h-16 bg-slate-800/30 rounded-full items-center justify-center mb-4 text-slate-600">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-400">Select Options Above</h3>
+                        <p class="text-slate-600 text-sm max-w-xs mx-auto mt-2">Pick a Paper Code and Year to start browsing the archive</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // ===== URL PARAMS =====
+        const params = new URLSearchParams(window.location.search);
+        const courseName = params.get('course') || 'BCA';
+        const docType = params.get('docType') || 'pyq';
+        const docTypeLabel = docType === 'notes' ? 'Notes' : 'PYQ';
+
+        document.getElementById('nav-title').textContent = `${courseName.toUpperCase()} ${docTypeLabel}`;
+        document.getElementById('page-title').textContent = `${courseName.toUpperCase()} — ${docTypeLabel} Archive`;
+        document.getElementById('page-desc').textContent = `Select a Paper Code and Year to view the document`;
+
+        // ===== STATE =====
+        let allDocs = [];
+        let selectedSubject = null;
+        let selectedYear = null;
+
+        // ===== FETCH with Optimization (Fast Raw + Reliable Proxy) =====
+        async function fetchData() {
+            const OWNER = 'Aditya1wp';
+            const REPO = 'bca-pyq-database';
+            const RAW_URL = `https://raw.githubusercontent.com/${OWNER}/${REPO}/main/database.json`;
+            const PROXY_URL = '/api/upload';
+            const CACHE_KEY = `bca_cache_${courseName}_${docType}`;
+            
+            // 1. Try local cache first
+            const cached = localStorage.getItem(CACHE_KEY);
+            if (cached) {
+                try {
+                    const { data, timestamp } = JSON.parse(cached);
+                    if (Date.now() - timestamp < 15 * 60 * 1000) { // 15 min cache
+                        console.log("Instant load from cache");
+                        processData(data);
+                        // Refresh in background
+                        fetchFromServer(RAW_URL, PROXY_URL, CACHE_KEY, true);
+                        return;
+                    }
+                } catch(e) { localStorage.removeItem(CACHE_KEY); }
+            }
+
+            // 2. No cache, fetch from server
+            await fetchFromServer(RAW_URL, PROXY_URL, CACHE_KEY);
+        }
+
+        async function fetchFromServer(rawUrl, proxyUrl, cacheKey, isBackground = false) {
+            try {
+                let data = null;
+                
+                // Try RAW CDN first (fastest)
+                try {
+                    const res = await fetch(rawUrl);
+                    if (res.ok) data = await res.json();
+                } catch(e) { console.warn("Raw fetch failed, trying proxy..."); }
+
+                // Fallback to Proxy if Raw failed
+                if (!data) {
+                    const res = await fetch(proxyUrl);
+                    if (res.ok) data = await res.json();
+                }
+
+                if (!data) throw new Error("Could not retrieve database");
+
+                // Filter
+                const filtered = data.filter(doc => {
+                    const docCourse = (doc.courseName || 'BCA').toLowerCase();
+                    const docDocType = (doc.docType || 'pyq').toLowerCase();
+                    return docCourse === courseName.toLowerCase() && docDocType === docType.toLowerCase();
+                });
+
+                // Update cache
+                localStorage.setItem(cacheKey, JSON.stringify({
+                    data: filtered,
+                    timestamp: Date.now()
+                }));
+
+                processData(filtered);
+
+            } catch (err) {
+                console.error('Fetch Error:', err);
+                if (!isBackground && allDocs.length === 0) {
+                    document.getElementById('loading-state').innerHTML = `
+                        <div class="inline-flex w-16 h-16 bg-red-500/10 rounded-full items-center justify-center mb-4 border border-red-500/20">
+                            <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <p class="text-red-400 font-medium mb-2">Connection Problem</p>
+                        <p class="text-slate-500 text-xs mb-4">We couldn't reach the database.</p>
+                        <button onclick="location.reload()" class="px-6 py-2 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700 transition-colors text-sm font-bold">Try Again</button>
+                    `;
+                }
+            }
+        }
+
+        function processData(data) {
+            allDocs = data;
+            document.getElementById('loading-state').classList.add('hidden');
+
+            if (allDocs.length === 0) {
+                document.getElementById('empty-state').classList.remove('hidden');
+                document.getElementById('main-content').classList.add('hidden');
+                return;
+            }
+
+            document.getElementById('empty-state').classList.add('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
+            renderSubjectPills();
+        }
+
+        // ===== RENDER SUBJECT PILLS (Horizontal) =====
+        function renderSubjectPills() {
+            const container = document.getElementById('subject-pills');
+            const subjects = [...new Set(allDocs.map(d => d.subjectCode))].sort();
+
+            container.innerHTML = subjects.map(sub => {
+                const isActive = sub === selectedSubject;
+                return `<button onclick="selectSubject('${sub}')" class="px-5 py-2.5 rounded-full text-[11px] font-black transition-all duration-300 border uppercase tracking-wider ${isActive 
+                    ? 'bg-white text-[#0f172a] border-white shadow-[0_0_20px_rgba(255,255,255,0.2)]' 
+                    : 'bg-slate-800/40 text-slate-400 border-white/5 hover:border-white/20 hover:text-white'}">${sub}</button>`;
+            }).join('');
+        }
+
+        // ===== SELECT SUBJECT =====
+        function selectSubject(sub) {
+            selectedSubject = sub;
+            selectedYear = null;
+            renderSubjectPills();
+            renderYearPills();
+            document.getElementById('result-section').classList.add('hidden');
+            document.getElementById('prompt-state').classList.remove('hidden');
+        }
+
+        // ===== RENDER YEAR PILLS (Vertical) =====
+        function renderYearPills() {
+            const container = document.getElementById('year-pills');
+            if (!selectedSubject) {
+                container.innerHTML = '<div class="text-slate-600 text-xs text-center py-4 w-full">Select subject first</div>';
+                return;
+            }
+
+            const docsForSub = allDocs.filter(d => d.subjectCode === selectedSubject);
+            const years = [...new Set(docsForSub.map(d => d.year))].sort((a, b) => b - a);
+
+            container.innerHTML = years.map(yr => {
+                const isActive = yr === selectedYear;
+                return `<button onclick="selectYear(${yr})" class="w-full md:w-full px-4 py-3 rounded-xl text-xs font-black transition-all duration-300 border ${isActive 
+                    ? 'bg-cyan-500 text-[#0f172a] border-cyan-500 shadow-lg shadow-cyan-500/20' 
+                    : 'bg-slate-800/40 text-cyan-400/70 border-white/5 hover:border-cyan-500/30 hover:text-cyan-400'}">${yr}</button>`;
+            }).join('');
+        }
+
+        // ===== SELECT YEAR =====
+        function selectYear(yr) {
+            selectedYear = yr;
+            renderYearPills();
+            showDocument();
+        }
+
+        // ===== SHOW DOCUMENT =====
+        function showDocument() {
+            const doc = allDocs.find(d => d.subjectCode === selectedSubject && d.year === selectedYear);
+            const resultSection = document.getElementById('result-section');
+            const promptState = document.getElementById('prompt-state');
+
+            if (!doc || !doc.downloadUrl) {
+                resultSection.classList.add('hidden');
+                promptState.classList.remove('hidden');
+                return;
+            }
+
+            // Hide prompt, show result
+            promptState.classList.add('hidden');
+            resultSection.classList.remove('hidden');
+
+            // Update info
+            document.getElementById('result-title').textContent = `${doc.subjectCode} — ${doc.subjectName || 'Document'}`;
+            document.getElementById('result-meta').textContent = `${doc.semester || ''} Semester • Year ${doc.year} • ${(doc.fileSize / 1024).toFixed(0)} KB`;
+            document.getElementById('viewer-label').textContent = `${doc.subjectCode}_${doc.year}.PDF`;
+
+            // Download button
+            const dlBtn = document.getElementById('download-btn');
+            dlBtn.href = doc.downloadUrl;
+            dlBtn.setAttribute('target', '_blank');
+
+            // PDF viewer
+            const pdfFrame = document.getElementById('pdf-frame');
+            pdfFrame.src = `https://docs.google.com/gview?url=${encodeURIComponent(doc.downloadUrl)}&embedded=true`;
+        }
+
+        // ===== INIT =====
+        fetchData();
+    </script>
+
+    <script src="upload-system.js"></script>
+</body>
+</html>

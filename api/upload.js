@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
     // Enable CORS if needed
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') {
@@ -57,7 +57,8 @@ export default async function handler(req, res) {
             sem, 
             year,
             category,
-            courseName
+            courseName,
+            docType
         } = req.body;
         
         if (!content || !filename || !code || !courseName || !category) {
@@ -177,6 +178,7 @@ export default async function handler(req, res) {
             subjectName: name || 'Unknown Subject',
             year: parsedYear,
             semester: safeSemester,
+            docType: docType || 'pyq',
             createdAt: new Date().toISOString(),
             fileName: filename,
             fileSize: fileSize || 0,

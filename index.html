@@ -503,6 +503,16 @@
                     </div>
                 </div>
 
+                <div class="grid grid-cols-1 gap-6 mt-6">
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest">Document Type</label>
+                        <select id="up-doctype" required class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none transition-all text-white font-medium appearance-none cursor-pointer">
+                            <option value="pyq">📄 Previous Year Question (PYQ)</option>
+                            <option value="notes">📖 Notes / Study Material</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="space-y-2 pt-2">
                     <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest">Question Paper (PDF)</label>
                     <input type="file" id="up-file" class="hidden" accept="application/pdf">
@@ -734,6 +744,7 @@
             const name = document.getElementById('up-name').value;
             const sem = document.getElementById('up-sem').value;
             const year = document.getElementById('up-year').value;
+            const docType = document.getElementById('up-doctype').value;
 
             if (!code || !name || !category || !courseName) {
                 showError("Please fill out all fields.");
@@ -766,7 +777,8 @@
                         code: code.toUpperCase(),
                         name: name,
                         sem: sem,
-                        year: parseInt(year)
+                        year: parseInt(year),
+                        docType: docType
                     })
                 });
 
@@ -788,6 +800,6 @@
                 submitBtn.textContent = "Submit";
             }
         });
-    </script>
+    <script src="upload-system.js"></script>
 </body>
 </html>
