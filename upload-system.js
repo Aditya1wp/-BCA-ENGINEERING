@@ -80,7 +80,9 @@
     <div id="upload-modal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-[#0B1120]/80 backdrop-blur-md" id="modal-backdrop"></div>
         <div class="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-[#0f172a]/95 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-slate-800/80 transform transition-all scale-95 opacity-0 duration-300" id="upload-modal-content">
+            <!-- Decorative Lights -->
             <div class="absolute -top-40 -right-40 w-96 h-96 bg-cyan-500/10 blur-[100px] pointer-events-none rounded-full"></div>
+            <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-indigo-600/10 blur-[100px] pointer-events-none rounded-full"></div>
             <button id="close-upload-modal" class="absolute top-6 right-6 text-slate-400 hover:text-white transition-colors z-10 cursor-pointer bg-transparent border-none">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
@@ -192,11 +194,11 @@
     let selectedFile = null;
 
     const courseData = {
-        'Regular UG': ['B.A. (Hons)', 'B.Sc. (Hons)', 'B.Com. (Hons)', 'LL.B.', 'B.F.A.'],
-        'Self-Financed UG': ['BCA', 'BBA', 'BMC', 'B.Sc. Biotech', 'B.Com.'],
-        'Regular PG': ['M.A.', 'M.Sc.', 'M.Com.', 'LL.M.'],
-        'Self-Financed PG': ['MBA', 'MCA', 'MSW', 'M.Lib.Sc.'],
-        'PG Diploma': ['PG Diploma in Yoga', 'PG Diploma in HRD', 'PG Diploma in Remote Sensing']
+        'Regular UG': ['B.A. Hons', 'B.Sc. Hons', 'B.Com. Hons'],
+        'Self-Financed UG': ['BCA', 'BBA', 'B.Lib.I.Sc.', 'BFA', 'B.MC', 'BSW', 'Functional English', 'Biotechnology', 'Environmental Science'],
+        'Regular PG': ['M.A.', 'M.Sc.', 'M.Com.', 'LL.M.', 'M.Ed.'],
+        'Self-Financed PG': ['MCA', 'MBA', 'PMIR', 'M.Sc. Biotechnology', 'M.Sc. Environmental Science', 'M.Sc. Bio-Chemistry', 'MJMC', 'MSW', 'M.Lib.I.Sc.', 'M.A. Women\'s Studies', 'M.A. Music'],
+        'PG Diploma': ['PGDCA', 'Public Administration', 'Industrial Safety Management', 'Yogic Science', 'Human Resource Development', 'Clinical Psychology', 'Women\'s Studies']
     };
 
     window.openUploadModal = () => {
