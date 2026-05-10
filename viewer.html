@@ -323,7 +323,7 @@
         // ===== RENDER YEAR PILLS (Step 1: Horizontal) =====
         function renderYearPills() {
             const container = document.getElementById('year-pills');
-            const years = [...new Set(allDocs.map(d => d.year))].sort((a, b) => b - a);
+            const years = [...new Set(allDocs.map(d => parseInt(d.year)))].filter(y => !isNaN(y)).sort((a, b) => b - a);
 
             container.innerHTML = years.map(yr => {
                 const isActive = yr === selectedYear;
