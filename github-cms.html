@@ -657,6 +657,76 @@
             };
 
 
+            const handleRejectAll = async () => {
+                const pendingDocs = documents.filter(d => d.verified === false);
+                if (pendingDocs.length === 0) return;
+                if (!confirm(`⚠️ REJECT ALL: This will permanently delete ${pendingDocs.length} spam document(s) from GitHub and the database. This cannot be undone!`)) return;
+
+                setLoading(true);
+                setError('');
+                let deletedCount = 0;
+                let failedCount = 0;
+
+                try {
+                    // Step 1: Delete all physical PDF files from GitHub (in parallel)
+                    await Promise.all(pendingDocs.map(async (doc) => {
+                        try {
+                            const urlParts = doc.downloadUrl.split('/');
+                            const mainIndex = urlParts.indexOf(config.branch || 'main');
+                            if (mainIndex === -1) return;
+                            const filePath = urlParts.slice(mainIndex + 1).join('/');
+
+                            const fileRes = await githubFetch(filePath);
+                            if (fileRes.ok) {
+                                const fileData = await fileRes.json();
+                                const delRes = await githubFetch(filePath, {
+                                    method: 'DELETE',
+                                    body: JSON.stringify({
+                                        message: `spam: bulk-reject ${doc.subjectCode}`,
+                                        sha: fileData.sha,
+                                        branch: config.branch
+                                    })
+                                });
+                                if (delRes.ok) deletedCount++;
+                                else failedCount++;
+                            }
+                        } catch (e) {
+                            failedCount++;
+                            console.warn(`Failed to delete file for ${doc.subjectCode}`, e);
+                        }
+                    }));
+
+                    // Step 2: Remove all pending docs from database.json in one write
+                    const dbFetchRes = await githubFetch('database.json');
+                    if (!dbFetchRes.ok) throw new Error('Failed to fetch database.json for bulk reject');
+
+                    const dbData = await dbFetchRes.json();
+                    const currentDb = JSON.parse(base64ToText(dbData.content));
+                    const pendingIds = new Set(pendingDocs.map(d => d.id));
+                    const cleanedDb = currentDb.filter(d => !pendingIds.has(d.id));
+
+                    const dbUpdateRes = await githubFetch('database.json', {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            message: `spam: bulk-reject ${pendingDocs.length} pending documents — cleaned by admin`,
+                            content: textToBase64(JSON.stringify(cleanedDb, null, 2)),
+                            sha: dbData.sha,
+                            branch: config.branch
+                        })
+                    });
+
+                    if (!dbUpdateRes.ok) throw new Error('Failed to update database.json after bulk reject');
+
+                    setDocuments(cleanedDb);
+                    alert(`✅ Done! Rejected & deleted ${pendingDocs.length} spam document(s).${failedCount > 0 ? ` (${failedCount} file(s) may already have been removed from storage.)` : ''}`);
+                    setView('dashboard');
+                } catch (err) {
+                    setError(err.message || 'Bulk rejection failed.');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
             // --- UI COMPONENTS ---
             
             if (view === 'settings') {
@@ -918,9 +988,21 @@
                                                 <p className="text-slate-400">Review pending documents before they go live</p>
                                             </div>
                                         </div>
-                                        <button onClick={() => setView('dashboard')} className="px-6 py-3 bg-slate-800 rounded-xl text-sm font-bold text-slate-300 hover:text-white transition-all">
-                                            Exit Moderation
-                                        </button>
+                                        <div className="flex items-center gap-3">
+                                            {filteredDocs.length > 0 && (
+                                                <button
+                                                    onClick={handleRejectAll}
+                                                    disabled={loading}
+                                                    className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-black uppercase tracking-widest bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all shadow-lg shadow-red-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                    Reject All ({filteredDocs.length})
+                                                </button>
+                                            )}
+                                            <button onClick={() => setView('dashboard')} className="px-6 py-3 bg-slate-800 rounded-xl text-sm font-bold text-slate-300 hover:text-white transition-all">
+                                                Exit Moderation
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
                                 
