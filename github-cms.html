@@ -581,21 +581,19 @@
                     let newDownloadUrl = originalDoc.downloadUrl;
 
                     if (isMoving) {
-                        // 1. Fetch file content from GitHub to "Move" it
+                        // 1. Fetch file metadata to get the SHA (Efficient Move)
                         const fileRes = await githubFetch(oldPath);
-                        if (!fileRes.ok) throw new Error(`Could not find source file at ${oldPath}. It might have been moved manually.`);
+                        if (!fileRes.ok) throw new Error(`Source file not found at ${oldPath}`);
                         const fileData = await fileRes.json();
-                        const base64Content = fileData.content;
-
-                        // 2. Add "Create New" and "Delete Old" operations
-                        operations.push({ path: newPath, content: atob(base64Content) }); // Tree API uses raw string for content
+                        
+                        // 2. Add "Move" operations using SHA (works perfectly for binary/PDF)
+                        operations.push({ path: newPath, sha: fileData.sha });
                         operations.push({ path: oldPath, delete: true });
 
-                        // 3. Update the download URL
                         newDownloadUrl = `https://raw.githubusercontent.com/${config.owner}/${config.repo}/${config.branch || 'main'}/${newPath}`;
                     }
 
-                    // 4. Update database
+                    // 3. Update database
                     const finalDoc = { 
                         ...updatedDoc, 
                         downloadUrl: newDownloadUrl,
@@ -605,12 +603,11 @@
                     const updatedDb = documents.map(d => d.id === finalDoc.id ? finalDoc : d);
                     operations.push({ path: 'database.json', content: JSON.stringify(updatedDb, null, 2) });
 
-                    // 5. Commit all changes in ONE go
                     await multiCommit(`refactor: update and ${isMoving ? 'move' : 'edit'} resource ${finalDoc.subjectCode}`, operations);
 
                     setDocuments(updatedDb);
-                    setEditDoc({ doc: null, show: false });
-                    if (isMoving) alert("Document moved successfully to the new path!");
+                    setEditDoc({ doc: null, show: false, syncFile: true });
+                    if (isMoving) alert("Document moved successfully!");
                 } catch (err) {
                     setError(err.message || 'Update failed.');
                 } finally {
@@ -660,15 +657,15 @@
                             path: op.path,
                             mode: '100644',
                             type: 'blob',
-                            sha: op.delete ? null : undefined,
-                            content: op.delete ? undefined : op.content
+                            sha: op.delete ? null : (op.sha || undefined),
+                            content: op.delete || op.sha ? undefined : op.content
                         }))
                     })
                 });
                 
                 if (!treeRes.ok) {
                     const err = await treeRes.json();
-                    throw new Error(`Tree creation failed: ${err.message}`);
+                    throw new Error(`Tree Creation: ${err.message || treeRes.statusText}`);
                 }
                 const treeData = await treeRes.json();
 
@@ -681,7 +678,10 @@
                         parents: [lastCommitSha]
                     })
                 });
-                if (!commitRes.ok) throw new Error("Commit creation failed");
+                if (!commitRes.ok) {
+                    const err = await commitRes.json();
+                    throw new Error(`Commit Creation: ${err.message || commitRes.statusText}`);
+                }
                 const commitData = await commitRes.json();
 
                 // 4. Update branch ref
@@ -689,7 +689,10 @@
                     method: 'PATCH',
                     body: JSON.stringify({ sha: commitData.sha })
                 });
-                if (!refRes.ok) throw new Error("Branch update failed");
+                if (!refRes.ok) {
+                    const err = await refRes.json();
+                    throw new Error(`Branch Update: ${err.message || refRes.statusText}`);
+                }
                 
                 return commitData;
             };
@@ -1092,7 +1095,7 @@
                                                         ) : (
                                                             <>
                                                                 <button 
-                                                                    onClick={() => setEditDoc({ doc: {...doc}, show: true })}
+                                                                    onClick={() => setEditDoc({ doc: {...doc}, show: true, syncFile: true })}
                                                                     className="p-2 text-slate-500 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-all"
                                                                     title="Edit Details"
                                                                 >
