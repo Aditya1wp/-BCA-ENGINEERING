@@ -181,10 +181,6 @@
                 const safeCode = doc.subjectCode.replace(/[^a-zA-Z0-9-]/g, '_').toUpperCase();
                 return `uploads/${safeCourse}/${doc.semester}/${safeCode}_${doc.id}.pdf`;
             };
-                const mainIndex = urlParts.indexOf(branch);
-                if (mainIndex === -1) return null;
-                return urlParts.slice(mainIndex + 1).join('/');
-            };
 
             const fetchDatabase = async () => {
                 setLoading(true);
