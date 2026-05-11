@@ -74,17 +74,50 @@
         .hamburger-btn.active .line-3 { transform: translateY(-8px) rotate(-45deg); background: var(--accent); }
 
         .menu-overlay {
-            position: fixed; top: 0; right: -420px; bottom: 0; width: 400px;
+            position: fixed; top: 15px; right: -420px; bottom: 15px; width: 400px;
             background: rgba(10, 15, 28, 0.95); backdrop-filter: blur(40px);
-            z-index: 1150; padding: 60px 40px; border-left: 1px solid var(--glass-border);
+            z-index: 3000; padding: 60px 40px; border-left: 1px solid var(--glass-border);
+            border-radius: 40px 0 0 40px;
             transition: 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .menu-overlay.active { right: 0; }
         .menu-backdrop {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1140;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 2900;
             display: none; cursor: pointer; backdrop-filter: blur(4px);
         }
         .menu-backdrop.active { display: block; }
+
+        .menu-header { margin-top: 20px; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .menu-header .label { font-size: 10px; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+        .status-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent); animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
+
+        .menu-links-container { flex-grow: 1; display: flex; flex-direction: column; gap: 10px; }
+        .menu-link {
+            font-size: 1rem; font-weight: 600; color: rgba(255,255,255,0.6); text-decoration: none;
+            transition: 0.4s; font-family: 'JetBrains Mono', monospace;
+            opacity: 0; transform: translateX(50px) rotateY(15deg);
+            display: flex; align-items: center; gap: 18px; padding: 16px 20px; border-radius: 16px;
+            position: relative; overflow: hidden;
+        }
+        .menu-link::after { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); transition: 0.5s; }
+        .menu-link:hover::after { left: 100%; }
+        .menu-overlay.active .menu-link { opacity: 1; transform: translateX(0) rotateY(0); }
+        .menu-link:hover { color: white; background: rgba(255, 255, 255, 0.05); transform: translateX(10px); }
+
+        .menu-footer { margin-top: auto; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .footer-label { font-size: 10px; color: rgba(255,255,255,0.3); }
+        .social-icons { display: flex; gap: 15px; color: rgba(255,255,255,0.3); }
+        .social-icons i { cursor: pointer; transition: 0.3s; }
+        .social-icons i:hover { color: var(--accent); }
+
+        .menu-close-btn {
+            position: absolute; top: 25px; right: 25px; background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1); color: white; width: 40px; height: 40px;
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 20px; transition: 0.3s; z-index: 10;
+        }
+        .menu-close-btn:hover { background: var(--accent); color: black; transform: rotate(90deg); }
 
         /* --- MAIN CONTENT --- */
         .supreme-main {
@@ -93,6 +126,36 @@
             width: 100%;
             margin: 0 auto;
             padding: 80px 5%;
+        }
+
+        #main-upload-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 24px;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            transition: 0.3s;
+            letter-spacing: 1px;
+            border: none;
+            cursor: pointer;
+        }
+
+        #main-upload-btn:hover {
+            background: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(6, 182, 212, 0.3);
+            color: black;
+        }
+
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
         .header-console {
@@ -218,20 +281,45 @@
             </a>
         </div>
 
-        <button class="hamburger-btn" id="menu-toggle">
-            <div class="hamburger-line line-1"></div>
-            <div class="hamburger-line line-2"></div>
-            <div class="hamburger-line line-3"></div>
-        </button>
+        <div class="nav-controls">
+            <button id="main-upload-btn" onclick="openUploadModal()">
+                <span class="upload-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </span>
+                UPLOAD
+            </button>
+            <button class="hamburger-btn" id="menu-toggle">
+                <div class="hamburger-line line-1"></div>
+                <div class="hamburger-line line-2"></div>
+                <div class="hamburger-line line-3"></div>
+            </button>
+        </div>
     </nav>
 
     <!-- Side Menu -->
+    <div class="menu-backdrop" id="menu-backdrop" onclick="toggleMenu()"></div>
     <div class="menu-overlay" id="menu-overlay">
-        <div style="font-family: 'JetBrains Mono'; color: var(--accent); font-size: 10px; letter-spacing: 3px; margin-bottom: 30px;">STRUCTURE_VERIFIED</div>
-        <div style="display: flex; flex-direction: column; gap: 25px;">
-            <a href="index.html" style="color: white; text-decoration: none; font-size: 1.5rem; font-weight: 800; font-family: 'Playfair Display';">Academic Dashboard</a>
-            <a href="categories.html" style="color: white; text-decoration: none; font-size: 1.5rem; font-weight: 800; font-family: 'Playfair Display';">Select Program</a>
-            <a href="resource-type.html" id="nav-resource-link" style="color: white; text-decoration: none; font-size: 1.5rem; font-weight: 800; font-family: 'Playfair Display';">Resource Type</a>
+        <button class="menu-close-btn" onclick="toggleMenu()">&times;</button>
+        <div class="menu-header">
+            <div class="label"><div class="status-dot"></div> Scholar Console v2.0</div>
+            <div style="font-size: 18px; font-weight: 800; margin-top: 10px; font-family: 'Playfair Display'; color: white;">Patna University Portal</div>
+        </div>
+
+        <div class="menu-links-container">
+            <a href="index.html#dashboard" class="menu-link"><i>📊</i> Academic Dashboard</a>
+            <a href="index.html#features" class="menu-link"><i>🏛️</i> University Portal</a>
+            <a href="index.html#about" class="menu-link"><i>📜</i> Patna University Legacy</a>
+            <a href="index.html#about" class="menu-link"><i>🤝</i> Join the Community</a>
+            <a href="#" onclick="toggleMenu(); document.getElementById('ai-chat-window').classList.remove('hidden'); return false;" class="menu-link" style="margin-top: 20px; color: var(--accent); background: rgba(6,182,212,0.05); border: 1px solid rgba(6,182,212,0.1);"><i>🤖</i> University AI Guide</a>
+        </div>
+
+        <div class="menu-footer">
+            <div class="footer-label">SYSTEM_READY // 2026</div>
+            <div class="social-icons">
+                <i onclick="window.open('https://github.com/Aditya1wp')">🔏</i>
+                <i>🌐</i>
+                <i>📡</i>
+            </div>
         </div>
     </div>
 
@@ -255,7 +343,8 @@
 
         document.getElementById('page-title').innerText = `${course.toUpperCase()} ${docTypeLabel}`;
         document.getElementById('course-label').innerText = `${course.toUpperCase()}_SYSTEM_ACTIVE`;
-        document.getElementById('nav-resource-link').href = `resource-type.html?course=${encodeURIComponent(course)}`;
+        const resLink = document.getElementById('nav-resource-link');
+        if (resLink) resLink.href = `resource-type.html?course=${encodeURIComponent(course)}`;
 
         const semestersData = [
             { id: "1st", name: "Semester 01", desc: "Master C Programming & Hardware fundamentals. The crucial foundation for modern computing systems.", icon: "M9.75 17L9 20l-1 1h8l-1-1-.75-3" },
@@ -305,5 +394,6 @@
         window.toggleMenu = toggleMenu;
         menuToggle.addEventListener('click', toggleMenu);
     </script>
+    <script src="upload-system.js"></script>
 </body>
 </html>

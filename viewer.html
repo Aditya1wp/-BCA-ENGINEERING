@@ -265,7 +265,18 @@
 
                 // Filter
                 const filtered = data.filter(doc => {
-                    const docCourse = (doc.courseName || 'BCA').toLowerCase();
+                    // Resiliency: Infer course from URL if missing (for legacy records)
+                    let docCourse = (doc.courseName || "").toLowerCase();
+                    if (!docCourse && doc.downloadUrl) {
+                        const urlParts = doc.downloadUrl.split('/');
+                        const uploadsIndex = urlParts.indexOf('uploads');
+                        if (uploadsIndex !== -1 && urlParts[uploadsIndex + 1]) {
+                            docCourse = urlParts[uploadsIndex + 1].toLowerCase();
+                        }
+                    }
+                    // Fallback to BCA only if absolutely nothing else matches (historical default)
+                    if (!docCourse) docCourse = "bca";
+
                     const docDocType = (doc.docType || 'pyq').toLowerCase();
                     const docSemester = mapSemester(doc.semester);
                     
