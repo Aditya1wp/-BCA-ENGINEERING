@@ -175,6 +175,17 @@
                 return urlParts.slice(mainIndex + 1).join('/');
             };
 
+            // Helper to reconstruct path from metadata
+            const reconstructPath = (doc) => {
+                const safeCourse = doc.courseName.replace(/[^a-zA-Z0-9-]/g, '_').toLowerCase();
+                const safeCode = doc.subjectCode.replace(/[^a-zA-Z0-9-]/g, '_').toUpperCase();
+                return `uploads/${safeCourse}/${doc.semester}/${safeCode}_${doc.id}.pdf`;
+            };
+                const mainIndex = urlParts.indexOf(branch);
+                if (mainIndex === -1) return null;
+                return urlParts.slice(mainIndex + 1).join('/');
+            };
+
             const fetchDatabase = async () => {
                 setLoading(true);
                 setError('');
@@ -557,45 +568,53 @@
 
             const handleUpdateDoc = async (e) => {
                 e.preventDefault();
-                const doc = editDoc.doc;
-                if (!doc) return;
+                const updatedDoc = editDoc.doc;
+                if (!updatedDoc) return;
 
                 setLoading(true);
                 setError('');
                 try {
-                    const dbFetchRes = await githubFetch('database.json');
-                    if (!dbFetchRes.ok) throw new Error("Failed to fetch database.json");
-                    
-                    const dbData = await dbFetchRes.json();
-                    let currentDb = JSON.parse(base64ToText(dbData.content));
-                    
-                    const updatedDb = currentDb.map(d => {
-                        if (d.id === doc.id) {
-                            return { 
-                                ...d, 
-                                subjectName: doc.subjectName,
-                                subjectCode: doc.subjectCode.replace(/[^a-zA-Z0-9-]/g, '_').toUpperCase(),
-                                year: parseInt(doc.year),
-                                semester: doc.semester
-                            };
-                        }
-                        return d;
-                    });
+                    const originalDoc = documents.find(d => d.id === updatedDoc.id);
+                    if (!originalDoc) throw new Error("Original document not found");
 
-                    const dbUpdateRes = await githubFetch('database.json', {
-                        method: 'PUT',
-                        body: JSON.stringify({
-                            message: `update: edit resource metadata ${doc.subjectCode}`,
-                            content: textToBase64(JSON.stringify(updatedDb, null, 2)),
-                            sha: dbData.sha,
-                            branch: config.branch
-                        })
-                    });
+                    const oldPath = getPathFromUrl(originalDoc.downloadUrl);
+                    const newPath = reconstructPath(updatedDoc);
+                    const isMoving = oldPath !== newPath;
 
-                    if (!dbUpdateRes.ok) throw new Error("Failed to sync database.json after update");
+                    let operations = [];
+                    let newDownloadUrl = originalDoc.downloadUrl;
+
+                    if (isMoving) {
+                        // 1. Fetch file content from GitHub to "Move" it
+                        const fileRes = await githubFetch(oldPath);
+                        if (!fileRes.ok) throw new Error(`Could not find source file at ${oldPath}. It might have been moved manually.`);
+                        const fileData = await fileRes.json();
+                        const base64Content = fileData.content;
+
+                        // 2. Add "Create New" and "Delete Old" operations
+                        operations.push({ path: newPath, content: atob(base64Content) }); // Tree API uses raw string for content
+                        operations.push({ path: oldPath, delete: true });
+
+                        // 3. Update the download URL
+                        newDownloadUrl = `https://raw.githubusercontent.com/${config.owner}/${config.repo}/${config.branch || 'main'}/${newPath}`;
+                    }
+
+                    // 4. Update database
+                    const finalDoc = { 
+                        ...updatedDoc, 
+                        downloadUrl: newDownloadUrl,
+                        subjectCode: updatedDoc.subjectCode.replace(/[^a-zA-Z0-9-]/g, '_').toUpperCase()
+                    };
+
+                    const updatedDb = documents.map(d => d.id === finalDoc.id ? finalDoc : d);
+                    operations.push({ path: 'database.json', content: JSON.stringify(updatedDb, null, 2) });
+
+                    // 5. Commit all changes in ONE go
+                    await multiCommit(`refactor: update and ${isMoving ? 'move' : 'edit'} resource ${finalDoc.subjectCode}`, operations);
 
                     setDocuments(updatedDb);
                     setEditDoc({ doc: null, show: false });
+                    if (isMoving) alert("Document moved successfully to the new path!");
                 } catch (err) {
                     setError(err.message || 'Update failed.');
                 } finally {
