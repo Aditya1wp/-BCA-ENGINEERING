@@ -29,8 +29,26 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
 
+        /* --- SUPREME BACKGROUND --- */
+        .blueprint-grid {
+            position: fixed; inset: 0;
+            background-image: 
+                linear-gradient(rgba(6, 182, 212, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .scroll-progress {
+            position: fixed; top: 0; left: 0; height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--primary));
+            z-index: 2000; width: 0%; transition: width 0.1s ease;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'DM Sans', sans-serif;
             background-color: var(--dark-bg);
             color: var(--text-main);
             line-height: 1.6;
@@ -46,7 +64,7 @@
             background: rgba(15, 23, 42, 0.9);
             backdrop-filter: blur(12px);
             position: sticky;
-            top: 0; z-index: 1000;
+            top: 0; z-index: 1100;
             border-bottom: 1px solid var(--glass);
         }
 
@@ -681,6 +699,12 @@
         .hamburger-btn.active .line-2 { opacity: 0; transform: translateX(-20px); }
         .hamburger-btn.active .line-3 { transform: translateY(-8px) rotate(-45deg); background: var(--accent); }
 
+        .menu-backdrop {
+            position: fixed; inset: 0; background: transparent; z-index: 1040;
+            display: none; cursor: pointer;
+        }
+        .menu-backdrop.active { display: block; }
+
         .menu-overlay {
             position: fixed;
             top: 15px;
@@ -808,6 +832,31 @@
             font-size: 14px;
         }
 
+        .menu-close-btn {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            transition: 0.3s;
+            z-index: 10;
+        }
+
+        .menu-close-btn:hover {
+            background: var(--accent);
+            color: black;
+            transform: rotate(90deg);
+        }
+
         .menu-overlay .menu-link:nth-child(1) { transition-delay: 0.1s; }
         .menu-overlay .menu-link:nth-child(2) { transition-delay: 0.2s; }
         .menu-overlay .menu-link:nth-child(3) { transition-delay: 0.3s; }
@@ -825,6 +874,9 @@
     </style>
 </head>
 <body>
+    <div class="blueprint-grid"></div>
+    <div class="scroll-progress" id="scroll-bar"></div>
+    <div class="menu-backdrop" id="menu-backdrop" onclick="toggleMenu()"></div>
 
     <nav>
         <a href="index.html" class="logo" style="text-decoration: none; display: flex; align-items: center;">
@@ -849,6 +901,7 @@
 
     <!-- Full Screen Menu Overlay -->
     <div class="menu-overlay" id="menu-overlay">
+        <button class="menu-close-btn" onclick="toggleMenu()">&times;</button>
         <div class="menu-header">
             <div class="label"><div class="status-dot"></div> Scholar Console v2.0</div>
             <div style="font-size: 18px; font-weight: 800; margin-top: 10px; font-family: 'Playfair Display'; color: white;">Patna University Portal</div>
@@ -1129,9 +1182,23 @@
         </div>
     </section>
 
-    <footer>
-        <div>© 2026 BCA ENGINEER. All rights reserved.</div>
-        <div style="font-family: 'JetBrains Mono'; color: var(--accent);">v2.0.4_stable</div>
+    <footer style="padding: 60px 5%; background: rgba(10, 15, 28, 0.8); backdrop-filter: blur(20px); border-top: 1px solid var(--glass-border); display: flex; flex-direction: column; align-items: center; gap: 20px; text-align: center;">
+        <div style="display: flex; align-items: center; gap: 20px; font-family: 'JetBrains Mono'; font-size: 10px; color: rgba(255,255,255,0.3); letter-spacing: 2px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 10px #10b981; animation: pulse 2s infinite;"></div>
+                SYSTEM_OPTIMAL // STABLE
+            </div>
+            <span>|</span>
+            <div>LATENCY: 12ms</div>
+            <span>|</span>
+            <div>v2.0.5_SUPREME</div>
+        </div>
+        <div style="color: var(--text-dim); font-size: 0.9rem;">&copy; 2026 BCA ENGINEER. Built by the community for the legacy of Patna University.</div>
+        <div style="display: flex; gap: 20px; font-size: 1.2rem; color: rgba(255,255,255,0.4);">
+            <i class="fab fa-github hover:text-cyan-400 cursor-pointer transition-colors"></i>
+            <i class="fab fa-discord hover:text-cyan-400 cursor-pointer transition-colors"></i>
+            <i class="fab fa-twitter hover:text-cyan-400 cursor-pointer transition-colors"></i>
+        </div>
     </footer>
 
     
@@ -1229,13 +1296,16 @@
         // Hamburger Menu Toggle Logic
         const menuToggle = document.getElementById('menu-toggle');
         const menuOverlay = document.getElementById('menu-overlay');
+        const menuBackdrop = document.getElementById('menu-backdrop');
         const menuLinks = document.querySelectorAll('.menu-link');
 
         function toggleMenu() {
             menuToggle.classList.toggle('active');
             menuOverlay.classList.toggle('active');
+            menuBackdrop.classList.toggle('active');
             document.body.style.overflow = menuOverlay.classList.contains('active') ? 'hidden' : 'auto';
         }
+        window.toggleMenu = toggleMenu;
 
         if(menuToggle) menuToggle.addEventListener('click', toggleMenu);
 
@@ -1316,8 +1386,15 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             initStats();
-            startLiveSimulation();
         });
+
+        // Scroll Progress
+        window.onscroll = function() {
+            let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            let scrolled = (winScroll / height) * 100;
+            document.getElementById("scroll-bar").style.width = scrolled + "%";
+        };
     </script>
     <script src="upload-system.js"></script>
 </body>
