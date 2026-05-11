@@ -6,7 +6,7 @@
     <title>BCA ENGINEER | The Technical Ecosystem</title>
     <link rel="icon" type="image/png" href="logo.png">
 
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -179,89 +179,229 @@
         }
 
         .info-visual {
-            height: 400px;
-            background: #0f172a;
-            border-radius: 20px;
+            min-height: 400px;
+            background: #0a0f1d;
+            border-radius: 24px;
             border: 1px solid rgba(255,255,255,0.1);
             position: relative;
             overflow: hidden;
-            box-shadow: 0 40px 80px rgba(0,0,0,0.5);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .terminal-header {
-            background: #1e293b;
-            padding: 12px 20px;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.6);
             display: flex;
             align-items: center;
-            gap: 8px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            justify-content: center;
         }
 
-        .dot { width: 10px; height: 10px; border-radius: 50%; }
-        .dot.red { background: #ff5f56; }
-        .dot.yellow { background: #ffbd2e; }
-        .dot.green { background: #27c93f; }
+        .info-visual img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            opacity: 0.95;
+            transition: transform 0.6s ease;
+        }
 
-        .terminal-tab {
-            margin-left: 15px;
-            background: #0f172a;
-            padding: 6px 15px;
-            border-radius: 6px 6px 0 0;
+        .info-visual:hover img {
+            transform: scale(1.02);
+        }
+
+        /* --- PRESTIGIOUS UNIVERSITY ABOUT SECTION --- */
+        .pu-about-wrapper {
+            background: var(--darker-bg);
+            color: #f0f4ff;
+            font-family: 'DM Sans', sans-serif;
+            padding: 100px 24px;
+            position: relative;
+        }
+
+        .about-section-new {
+            max-width: 1100px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .eyebrow-new {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
             font-size: 11px;
-            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: #c9a84c;
+            margin-bottom: 18px;
+        }
+        .eyebrow-new::before {
+            content: '';
+            display: block;
+            width: 32px;
+            height: 1px;
+            background: #c9a84c;
+        }
+
+        .headline-new {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(36px, 6vw, 64px);
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            max-width: 680px;
+            margin-bottom: 20px;
+            color: white;
+        }
+        .headline-new em {
+            font-style: italic;
+            color: #e8c97e;
+        }
+
+        .lead-new {
+            font-size: 16px;
             color: var(--text-dim);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-bottom: none;
+            max-width: 520px;
+            line-height: 1.75;
+            margin-bottom: 64px;
         }
 
-        .terminal-body {
-            padding: 25px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
-            line-height: 1.6;
-            overflow-y: auto;
+        .stat-row-new {
+            display: flex;
+            gap: 0;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 64px;
+            background: rgba(255,255,255,0.02);
+        }
+
+        .stat-item-new {
             flex: 1;
+            padding: 28px 24px;
+            border-right: 1px solid rgba(255,255,255,0.07);
+            position: relative;
+            transition: background 0.3s;
+        }
+        .stat-item-new:last-child { border-right: none; }
+        .stat-item-new:hover { background: rgba(255,255,255,0.05); }
+
+        .stat-num-new {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            font-weight: 700;
+            color: #e8c97e;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+        .stat-label-new {
+            font-size: 12px;
+            color: var(--text-dim);
+            letter-spacing: 0.04em;
         }
 
-        .code-keyword { color: #8b5cf6; }
-        .code-func { color: #06b6d4; }
-        .code-string { color: #10b981; }
-        .code-comment { color: #475569; font-style: italic; }
+        .pillars-new {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 64px;
+        }
+
+        .pillar-new {
+            background: #0f172a;
+            padding: 40px 36px;
+            position: relative;
+            transition: background 0.3s;
+        }
+        .pillar-new:hover { background: #1e293b; }
+
+        .pillar-accent-new {
+            position: absolute;
+            top: 0; left: 0;
+            width: 3px;
+            height: 100%;
+        }
+
+        .pillar-tag-new {
+            font-size: 10px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 14px;
+        }
+        .pillar-title-new {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            line-height: 1.2;
+            color: white;
+        }
+        .pillar-body-new {
+            font-size: 14px;
+            color: var(--text-dim);
+            line-height: 1.75;
+            margin-bottom: 20px;
+        }
+
+        .tags-new {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .tag-new {
+            font-size: 11px;
+            padding: 4px 12px;
+            border-radius: 100px;
+            border: 1px solid rgba(255,255,255,0.07);
+            color: var(--text-dim);
+            transition: all 0.2s;
+        }
+        .tag-new:hover { border-color: #c9a84c; color: #e8c97e; }
+
+        /* Marquee */
+        .alumni-marquee-section {
+            margin-bottom: 64px;
+        }
+        .marquee-wrap-new {
+            overflow: hidden;
+            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        }
+        .marquee-track-new {
+            display: flex;
+            gap: 12px;
+            width: max-content;
+            animation: scroll-marquee 30s linear infinite;
+        }
+        @keyframes scroll-marquee {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+        .alumni-card-new {
+            flex-shrink: 0;
+            background: #0f172a;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 12px;
+            padding: 16px 20px;
+            min-width: 200px;
+        }
+
+        .footer-strip-new {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 28px 36px;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 16px;
+            background: #0f172a;
+        }
+
+        @media (max-width: 800px) {
+            .pillars-new { grid-template-columns: 1fr; }
+            .stat-row-new { flex-wrap: wrap; }
+            .stat-item-new { flex: 1 1 45%; border-bottom: 1px solid rgba(255,255,255,0.07); }
+            .footer-strip-new { flex-direction: column; gap: 20px; text-align: center; }
+        }
 
         /* --- ABOUT (BENTO STYLE) --- */
-        #about {
-            padding: 80px 8% 120px;
-            background: rgba(0,0,0,0.2);
-        }
-
-        .section-tag {
-            color: var(--accent);
-            text-transform: uppercase;
-            font-weight: 700;
-            letter-spacing: 2px;
-            display: block;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .section-title { text-align: center; font-size: 2.5rem; margin-bottom: 60px; }
-
-        .about-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 25px;
-        }
-
-        .about-box {
-            background: var(--glass);
-            padding: 40px;
-            border-radius: 24px;
-            border: 1px solid var(--glass);
-        }
-
-        .about-box h3 { margin-bottom: 15px; color: var(--accent); }
 
         /* --- FOOTER --- */
         footer {
@@ -578,34 +718,19 @@
 
     <section id="features" class="info-section">
         <div class="info-content">
-            <h2>Built by Engineers,<br>For Future Developers.</h2>
-            <p>We don't just provide notes; we provide a technical roadmap. Every resource is optimized for clarity and technical accuracy.</p>
+            <span class="section-label" style="margin-bottom: 15px; border-radius: 6px;">University Legacy</span>
+            <h2 style="font-size: 3rem; font-weight: 900; margin-bottom: 20px; line-height: 1.1;">Empowering Patna University,<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400">Regular to Professional.</span></h2>
+            <p style="font-size: 1.1rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 30px;">
+                As the 7th oldest university in the Indian subcontinent, Patna University represents academic excellence. **BCA ENGINEER** bridges the gap for all PU students, providing verified resources for both **Regular (Arts, Science, Commerce)** and **Self-Financed (BCA, BBA, Biotech)** streams.
+            </p>
             <ul class="check-list">
-                <li>Deep dives into PL/SQL & Database Management</li>
-                <li>System Administration & Linux Configuration guides</li>
-                <li>Free access to premium software libraries</li>
+                <li>Official Patna University Syllabus Alignment</li>
+                <li>Comprehensive Archives for Regular & Professional Streams</li>
+                <li>Community-Verified Resources for Every Semester</li>
             </ul>
         </div>
         <div class="info-visual">
-            <div class="terminal-header">
-                <div class="dot red"></div>
-                <div class="dot yellow"></div>
-                <div class="dot green"></div>
-                <div class="terminal-tab">db_sync.js</div>
-            </div>
-            <div class="terminal-body">
-                <div class="code-comment">// Syncing University Database...</div>
-                <div><span class="code-keyword">const</span> <span class="code-func">platform</span> = <span class="code-string">"BCA_ENGINEER"</span>;</div>
-                <div><span class="code-keyword">async function</span> <span class="code-func">initResources</span>() {</div>
-                <div style="padding-left: 20px;"><span class="code-keyword">const</span> data = <span class="code-keyword">await</span> fetch(GITHUB_API);</div>
-                <div style="padding-left: 20px;"><span class="code-func">console</span>.log(<span class="code-string">"Optimizing for students..."</span>);</div>
-                <div style="padding-left: 20px;"><span class="code-keyword">return</span> data.filter(res => res.verified);</div>
-                <div>}</div>
-                <div class="code-comment" style="margin-top: 15px;">// Status: Ready to Scale</div>
-                <div><span class="code-func">initResources</span>().<span class="code-func">then</span>(ready => {</div>
-                <div style="padding-left: 20px;"><span class="code-func">startEngine</span>(ready);</div>
-                <div>});</div>
-            </div>
+            <img src="pu_academic_portal_dashboard.png" alt="Patna University Academic Portal Dashboard">
         </div>
     </section>
 
@@ -668,25 +793,6 @@
                 </div>
             </div>
 
-            <!-- Community Stats -->
-            <div class="stats-section">
-                <div class="stat-card">
-                    <div class="stat-number">150+</div>
-                    <div class="stat-label">Active Contributors</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">500+</div>
-                    <div class="stat-label">Resources Shared</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">5K+</div>
-                    <div class="stat-label">Students Helped</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">99.9%</div>
-                    <div class="stat-label">Platform Uptime</div>
-                </div>
-            </div>
 
             <!-- How to Contribute -->
             <div class="how-to-section">
@@ -707,6 +813,114 @@
                         <h4 class="card-title-alt" style="font-size: 16px;">Submit a Pull Request</h4>
                         <p class="card-description-alt" style="font-size: 13px;">Open a PR with a clear description. Our team will review and merge it promptly.</p>
                     </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Prestigious University About Section -->
+    <section class="pu-about-wrapper">
+        <div class="about-section-new">
+            <!-- Headline -->
+            <p class="eyebrow-new">Est. 1917 &nbsp;·&nbsp; Patna, Bihar</p>
+            <h1 class="headline-new">Bihar's first voice<br>of <em>higher learning.</em></h1>
+            <p class="lead-new">For over a century, Patna University has shaped the minds that shaped India — from freedom fighters to poets, judges to prime ministers. The legacy continues.</p>
+
+            <!-- Stats -->
+            <div class="stat-row-new">
+                <div class="stat-item-new">
+                    <div class="stat-num-new">107+</div>
+                    <div class="stat-label-new">Years of academic excellence</div>
+                </div>
+                <div class="stat-item-new">
+                    <div class="stat-num-new">7th</div>
+                    <div class="stat-label-new">Oldest in the subcontinent</div>
+                </div>
+                <div class="stat-item-new">
+                    <div class="stat-num-new">177</div>
+                    <div class="stat-label-new">Diverse Courses</div>
+                </div>
+                <div class="stat-item-new">
+                    <div class="stat-num-new">30+</div>
+                    <div class="stat-label-new">Academic depts</div>
+                </div>
+                <div class="stat-item-new">
+                    <div class="stat-num-new">181</div>
+                    <div class="stat-label-new">Acres on the Ganges</div>
+                </div>
+            </div>
+
+            <!-- 4 Pillars -->
+            <div class="pillars-new">
+                <div class="pillar-new">
+                    <div class="pillar-accent-new" style="background: #c9a84c;"></div>
+                    <p class="pillar-tag-new">Est. 1917 &nbsp;·&nbsp; Origin</p>
+                    <h2 class="pillar-title-new">Oxford of the East</h2>
+                    <p class="pillar-body-new">Founded on 1 October 1917, Patna University was the sole university across Bihar, Odisha, and Nepal for nearly four decades. Built on the model of the University of London.</p>
+                    <div class="tags-new">
+                        <span class="tag-new">Bihar's #1 University</span>
+                        <span class="tag-new">Heritage</span>
+                    </div>
+                </div>
+
+                <div class="pillar-new">
+                    <div class="pillar-accent-new" style="background: #2dd4bf;"></div>
+                    <p class="pillar-tag-new">Alumni &nbsp;·&nbsp; Legacy</p>
+                    <h2 class="pillar-title-new">Hall of Fame</h2>
+                    <p class="pillar-body-new">From Jayaprakash Narayan — the "Lok Nayak" — to poet Ramdhari Singh Dinkar, PU has produced India's most consequential minds across every field.</p>
+                    <div class="tags-new">
+                        <span class="tag-new">JP Narayan</span>
+                        <span class="tag-new">Dinkar</span>
+                    </div>
+                </div>
+
+                <div class="pillar-new">
+                    <div class="pillar-accent-new" style="background: #a78bfa;"></div>
+                    <p class="pillar-tag-new">Academics &nbsp;·&nbsp; Depth</p>
+                    <h2 class="pillar-title-new">Century of Scholarship</h2>
+                    <p class="pillar-body-new">With spanning Science, Law, Commerce, Arts, Medicine and Management, PU is Bihar's most comprehensive academic ecosystem.</p>
+                    <div class="tags-new">
+                        <span class="tag-new">NAAC B+</span>
+                        <span class="tag-new">13 Colleges</span>
+                    </div>
+                </div>
+
+                <div class="pillar-new">
+                    <div class="pillar-accent-new" style="background: #f87171;"></div>
+                    <p class="pillar-tag-new">Present &nbsp;·&nbsp; Digital</p>
+                    <h2 class="pillar-title-new">Digital Guardian</h2>
+                    <p class="pillar-body-new">BCA Engineer honours this 100-year tradition by equipping the next generation with modern digital resources and tools.</p>
+                    <div class="tags-new">
+                        <span class="tag-new">Tech-Enabled</span>
+                        <span class="tag-new">Student-First</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alumni Marquee -->
+            <div class="alumni-marquee-section">
+                <div class="marquee-wrap-new">
+                    <div class="marquee-track-new">
+                        <div class="alumni-card-new"><div class="font-bold text-white text-sm">Jayaprakash Narayan</div><div class="text-xs text-slate-400">Lok Nayak</div></div>
+                        <div class="alumni-card-new"><div class="font-bold text-white text-sm">Ramdhari Singh Dinkar</div><div class="text-xs text-slate-400">National Poet</div></div>
+                        <div class="alumni-card-new"><div class="font-bold text-white text-sm">Bidhan Chandra Roy</div><div class="text-xs text-slate-400">Bharat Ratna</div></div>
+                        <div class="alumni-card-new"><div class="font-bold text-white text-sm">Lalu Prasad Yadav</div><div class="text-xs text-slate-400">Union Minister</div></div>
+                        <div class="alumni-card-new"><div class="font-bold text-white text-sm">Jayaprakash Narayan</div><div class="text-xs text-slate-400">Lok Nayak</div></div>
+                        <div class="alumni-card-new"><div class="font-bold text-white text-sm">Ramdhari Singh Dinkar</div><div class="text-xs text-slate-400">National Poet</div></div>
+                        <div class="alumni-card-new"><div class="font-bold text-white text-sm">Bidhan Chandra Roy</div><div class="text-xs text-slate-400">Bharat Ratna</div></div>
+                        <div class="alumni-card-new"><div class="font-bold text-white text-sm">Lalu Prasad Yadav</div><div class="text-xs text-slate-400">Union Minister</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Strip -->
+            <div class="footer-strip-new">
+                <div class="flex gap-4">
+                    <div class="text-[#e8c97e] font-bold text-sm bg-[#c9a84c1a] border border-[#c9a84c4d] px-4 py-2 rounded-lg">NAAC B+</div>
+                    <div class="text-[#2dd4bf] font-bold text-sm bg-[#2dd4bf14] border border-[#2dd4bf40] px-4 py-2 rounded-lg">UGC Recognised</div>
+                </div>
+                <div class="text-right text-xs text-slate-400">
+                    <strong class="text-white block mb-1">Ashok Rajpath, Patna, Bihar</strong>
+                    pup.ac.in &nbsp;·&nbsp; Est. 1917
                 </div>
             </div>
         </div>
