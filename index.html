@@ -311,8 +311,8 @@
     </section>
 
     <section class="stats-bar">
-        <div class="stat-item"><h2 id="stat-students">12,450+</h2><p>Active Learners</p></div>
-        <div class="stat-item"><h2 id="stat-papers">0+</h2><p>Verified Resources</p></div>
+        <div class="stat-item"><h2 id="stat-students">12,450</h2><p>Active Learners</p></div>
+        <div class="stat-item"><h2 id="stat-papers">97</h2><p>Verified Resources</p></div>
         <div class="stat-item"><h2>24/7</h2><p>Expert Support</p></div>
     </section>
 
@@ -448,23 +448,19 @@
                     const dbData = await dbRes.json();
                     if (Array.isArray(dbData)) {
                         // We count all resources to show instant progress
-                        document.getElementById('stat-papers').innerText = dbData.length + "+";
+                        document.getElementById('stat-papers').innerText = dbData.length;
                     }
                 } else if (dbRes.status === 404) {
                     // Database doesn't exist yet (no documents approved)
-                    document.getElementById('stat-papers').innerText = "0+";
+                    document.getElementById('stat-papers').innerText = "0";
                 }
 
-                // 2. Track & Fetch Real Visitors
-                const hasVisited = sessionStorage.getItem('v_counted');
-                const apiAction = hasVisited ? 'get' : 'increment';
-                
-                const countRes = await fetch(`https://api.counterapi.dev/v1/bca-engineer-official/visits/${apiAction}`);
+                // 2. Track & Fetch Real Visitors - Increment every single time
+                const countRes = await fetch(`https://api.counterapi.dev/v1/bca-engineer-official/visits/increment`);
                 if (countRes.ok) {
                     const countData = await countRes.json();
                     const totalVisits = 12450 + (countData.count || 0);
-                    document.getElementById('stat-students').innerText = totalVisits.toLocaleString() + "+";
-                    sessionStorage.setItem('v_counted', 'true');
+                    document.getElementById('stat-students').innerText = totalVisits.toLocaleString();
                 }
             } catch (err) {
                 console.warn("Live stats update skipped:", err.message);
