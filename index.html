@@ -287,8 +287,8 @@
     </nav>
 
     <header>
-        <h1 class="hero-title">Engineering the Future of BCA</h1>
-        <p class="hero-subtitle">The ultimate hub for PU students to download, share, and discuss study materials. From Previous Year Questions to hand-written notes, everything you need for your BCA journey is right here.</p>
+        <h1 class="hero-title">Study Hub for Patna University</h1>
+        <p class="hero-subtitle">Access semester-wise notes, Previous Year Questions, and study resources — all shared by your fellow PU students. Learn together, grow together.</p>
         <button onclick="window.location.href='categories.html'" class="cta-button">Select Course</button>
     </header>
 
@@ -312,7 +312,7 @@
 
     <section class="stats-bar">
         <div class="stat-item"><h2 id="stat-students">12,450+</h2><p>Active Learners</p></div>
-        <div class="stat-item"><h2 id="stat-papers">520+</h2><p>Verified Resources</p></div>
+        <div class="stat-item"><h2 id="stat-papers">0+</h2><p>Verified Resources</p></div>
         <div class="stat-item"><h2>24/7</h2><p>Expert Support</p></div>
     </section>
 
@@ -442,13 +442,17 @@
     <script>
         async function updateLiveStats() {
             try {
-                // 1. Fetch Real Solved Papers Count
-                const dbRes = await fetch('https://raw.githubusercontent.com/Aditya1wp/-BCA-ENGINEERING/main/database.json');
+                // 1. Fetch Real Verified Resources Count (with Cache Busting for instant updates)
+                const dbRes = await fetch(`https://raw.githubusercontent.com/Aditya1wp/bca-pyq-database/main/database.json?t=${new Date().getTime()}`);
                 if (dbRes.ok) {
                     const dbData = await dbRes.json();
-                    if (dbData && dbData.length) {
+                    if (Array.isArray(dbData)) {
+                        // We count all resources to show instant progress
                         document.getElementById('stat-papers').innerText = dbData.length + "+";
                     }
+                } else if (dbRes.status === 404) {
+                    // Database doesn't exist yet (no documents approved)
+                    document.getElementById('stat-papers').innerText = "0+";
                 }
 
                 // 2. Track & Fetch Real Visitors
@@ -458,13 +462,12 @@
                 const countRes = await fetch(`https://api.counterapi.dev/v1/bca-engineer-official/visits/${apiAction}`);
                 if (countRes.ok) {
                     const countData = await countRes.json();
-                    // We add 12,000 as a base to reflect historical data
-                    const totalVisits = 12450 + countData.count;
+                    const totalVisits = 12450 + (countData.count || 0);
                     document.getElementById('stat-students').innerText = totalVisits.toLocaleString() + "+";
                     sessionStorage.setItem('v_counted', 'true');
                 }
             } catch (err) {
-                console.warn("Live stats currently using cached values.");
+                console.warn("Live stats update skipped:", err.message);
             }
         }
         updateLiveStats();
