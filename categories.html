@@ -24,8 +24,8 @@
 <body class="antialiased min-h-screen flex flex-col justify-center items-center relative overflow-hidden">
 
     <nav class="absolute top-0 w-full z-50 glass-card border-b border-white/5 py-4 px-6 flex justify-between items-center">
-        <div class="flex items-center gap-4">
-            <button onclick="window.location.href='index.html'" class="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors group">
+        <div class="flex items-center gap-4 cursor-pointer" onclick="location.href='index.html'">
+            <button onclick="event.stopPropagation(); window.location.href='index.html'" class="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors group">
                 <svg class="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             </button>
                 <img src="logo.png" alt="Logo" class="h-10 w-auto">
