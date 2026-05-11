@@ -111,7 +111,7 @@
             const [uploading, setUploading] = useState(false);
             const [viewMode, setViewMode] = useState('single'); // 'single', 'bulk'
             const [bulkFiles, setBulkFiles] = useState([]); // [{file, metadata, status, error, selected}]
-            const [batchEdit, setBatchEdit] = useState({ category: '', courseName: '', semester: '', year: '' });
+            const [batchEdit, setBatchEdit] = useState({ courseName: '', semester: '', year: '', subjectCode: '' });
             const [uploadForm, setUploadForm] = useState({
                 category: '',
                 courseName: '',
@@ -363,10 +363,12 @@
             };
 
             const applyBatchEdit = () => {
-                if (!batchEdit.courseName && !batchEdit.semester && !batchEdit.year) return;
+                if (!batchEdit.courseName && !batchEdit.semester && !batchEdit.year && !batchEdit.subjectCode) return;
+                
+                const noneSelected = bulkFiles.every(f => !f.selected);
                 
                 const updated = bulkFiles.map(f => {
-                    if (!f.selected) return f;
+                    if (!noneSelected && !f.selected) return f;
                     const newCourse = batchEdit.courseName || f.metadata.courseName;
                     return {
                         ...f,
@@ -375,7 +377,8 @@
                             courseName: newCourse,
                             category: findCategory(newCourse),
                             semester: batchEdit.semester || f.metadata.semester,
-                            year: batchEdit.year ? parseInt(batchEdit.year) : f.metadata.year
+                            year: batchEdit.year ? parseInt(batchEdit.year) : f.metadata.year,
+                            subjectCode: batchEdit.subjectCode || f.metadata.subjectCode
                         }
                     };
                 });
@@ -1267,7 +1270,8 @@
                                                             {SEMESTERS.map(s => <option key={s} value={s}>{s}</option>)}
                                                         </select>
                                                         <input type="number" placeholder="Year" className="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-[10px] text-white w-16 outline-none" value={batchEdit.year} onChange={e => setBatchEdit({...batchEdit, year: e.target.value})} />
-                                                        <button onClick={applyBatchEdit} className="bg-cyan-500 text-[#0B1120] px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-cyan-400 transition-all">Apply to Selected</button>
+                                                        <input type="text" placeholder="Subject Code" className="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-[10px] text-white w-24 outline-none uppercase" value={batchEdit.subjectCode} onChange={e => setBatchEdit({...batchEdit, subjectCode: e.target.value.toUpperCase()})} />
+                                                        <button onClick={applyBatchEdit} className="bg-cyan-500 text-[#0B1120] px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-cyan-400 transition-all">Apply to All</button>
                                                         <button onClick={() => setBulkFiles([])} className="text-red-400 text-[10px] font-bold uppercase ml-auto">Clear All</button>
                                                     </div>
                                                     
