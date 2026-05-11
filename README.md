@@ -1,21 +1,63 @@
-# BCA_ENGINEER | The Technical Ecosystem
+# 🎓 BCA ENGINEER — The Technical Study Ecosystem
+> **Study Hub for Patna University students. Shared by students, for students.**
 
-A premium academic resource platform for university students to download and share study materials, including Previous Year Questions (PYQs) and hand-written notes.
-
-## 🔗 Live Links
-- **Official Website:** [https://bca-engineering.vercel.app/index.html](https://bca-engineering.vercel.app/index.html)
-- **Admin CMS (Bulk Upload):** [https://bca-engineering.vercel.app/github-cms.html](https://bca-engineering.vercel.app/github-cms.html)
-
-## 🚀 Features
-- **Smart Bulk Upload:** Batch upload 20+ PDF documents simultaneously with automatic metadata detection.
-- **Zero-Server Backend:** Leverages GitHub API as a high-performance, low-latency storage solution.
-- **AI Tutor:** Integrated AI counseling for instant academic help.
-- **Responsive Dashboard:** Optimized for both desktop and mobile devices.
-
-## 🛠️ Technology Stack
-- **Frontend:** HTML5, Tailwind CSS, Vanilla JavaScript, React (for CMS).
-- **Backend:** Vercel Serverless Functions (Node.js).
-- **Storage:** GitHub Repository API.
+[![Website Status](https://img.shields.io/website?url=https%3A%2F%2Fbca-engineering.vercel.app%2Findex.html&style=for-the-badge&logo=vercel&logoColor=white&color=06b6d4)](https://bca-engineering.vercel.app/index.html)
+[![GitHub CMS](https://img.shields.io/badge/Admin-CMS%20Dashboard-6366f1?style=for-the-badge&logo=github)](https://bca-engineering.vercel.app/github-cms.html)
 
 ---
-Built with ❤️ by [Aditya Gaurav](https://github.com/Aditya1wp)
+
+## 🌟 Overview
+**BCA ENGINEER** is a premium academic resource platform designed specifically for the students of Patna University. It bridges the gap between academic materials and accessibility by providing a centralized, high-performance archive of **Previous Year Questions (PYQs)** and **Verified Study Notes**.
+
+Built with a modern, dark-themed aesthetic, the platform offers a seamless experience for students to browse, download, and contribute to the university's technical knowledge base.
+
+---
+
+## 🚀 Key Features
+
+### 📊 Real-Time Analytics
+- **User Visited**: Track community growth with a reactive visitor counter.
+- **Verified Resources**: Live synchronization with the database to show exactly how many documents are approved and available.
+- **Online Now**: A live simulation of active learners across the platform.
+
+### 📚 Dual Resource Archive
+- **PYQ Archive**: Searchable year-wise collection of university exam papers.
+- **Notes & Study Material**: Direct access to hand-written and typed notes. Skips the year-selection for instant viewing.
+
+### 🤖 University AI Guide
+- Integrated **AI Counselor** to help students navigate courses, understand the difference between Regular and Self-Financed programs, and get technical assistance.
+
+### 📤 Universal Upload System
+- Students can contribute PDF resources directly from any page.
+- **Smart Moderation**: All uploads go to a pending state for admin approval via the custom GitHub CMS.
+
+### 🛠️ Zero-Server Architecture
+- **GitHub-as-a-Database**: Leverages the GitHub API for file storage and metadata management, ensuring 99.9% uptime and zero hosting costs for data.
+- **Stale-While-Revalidate Caching**: Optimized fetching logic using dual-source fallbacks (RAW CDN + API Proxy).
+
+---
+
+## 🛠️ Technology Stack
+
+| Component | Technology |
+| :--- | :--- |
+| **Frontend** | HTML5, Vanilla JavaScript, Tailwind CSS |
+| **Admin Dashboard** | React.js, Babel, Tailwind CSS |
+| **Backend** | Vercel Serverless Functions (Node.js) |
+| **Database/Storage** | GitHub REST API, `database.json` |
+| **AI Integration** | Google Gemini API (University AI Guide) |
+
+---
+
+## 🔗 Quick Links
+- **Official Website:** [bca-engineering.vercel.app](https://bca-engineering.vercel.app/index.html)
+- **Admin CMS:** [github-cms.html](https://bca-engineering.vercel.app/github-cms.html)
+
+---
+
+## 🤝 Contribution
+This is a community-driven project. If you are a student or faculty member and want to contribute notes or suggest features, feel free to use the **Upload** button on the website or reach out via GitHub.
+
+---
+
+Built with ⚡ by [Aditya Gaurav](https://github.com/Aditya1wp)
