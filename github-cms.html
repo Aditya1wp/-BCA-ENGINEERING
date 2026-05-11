@@ -355,15 +355,25 @@
                 setBulkFiles(bulkFiles.map(f => ({ ...f, selected: !allSelected })));
             };
 
+            const findCategory = (courseName) => {
+                for (const [cat, courses] of Object.entries(COURSE_DATA)) {
+                    if (courses.includes(courseName)) return cat;
+                }
+                return '';
+            };
+
             const applyBatchEdit = () => {
+                if (!batchEdit.courseName && !batchEdit.semester && !batchEdit.year) return;
+                
                 const updated = bulkFiles.map(f => {
                     if (!f.selected) return f;
+                    const newCourse = batchEdit.courseName || f.metadata.courseName;
                     return {
                         ...f,
                         metadata: {
                             ...f.metadata,
-                            category: batchEdit.category || f.metadata.category,
-                            courseName: batchEdit.courseName || f.metadata.courseName,
+                            courseName: newCourse,
+                            category: findCategory(newCourse),
                             semester: batchEdit.semester || f.metadata.semester,
                             year: batchEdit.year ? parseInt(batchEdit.year) : f.metadata.year
                         }
@@ -374,7 +384,14 @@
 
             const updateRowMetadata = (idx, field, value) => {
                 const updated = [...bulkFiles];
-                updated[idx].metadata[field] = value;
+                const meta = { ...updated[idx].metadata, [field]: value };
+                
+                // Auto-sync category if course changes
+                if (field === 'courseName') {
+                    meta.category = findCategory(value);
+                }
+                
+                updated[idx].metadata = meta;
                 setBulkFiles(updated);
             };
 
