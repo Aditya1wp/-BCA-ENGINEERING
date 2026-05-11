@@ -149,8 +149,8 @@
                 }
             }, [isConfigured, view]);
 
-            const githubFetch = async (path, options = {}) => {
-                const res = await fetch(`https://api.github.com/repos/${config.owner}/${config.repo}/contents/${path}?ref=${config.branch || 'main'}`, {
+            const githubApi = async (endpoint, options = {}) => {
+                const res = await fetch(`https://api.github.com/repos/${config.owner}/${config.repo}/${endpoint}`, {
                     ...options,
                     headers: {
                         'Authorization': `Bearer ${config.token}`,
@@ -160,6 +160,19 @@
                     }
                 });
                 return res;
+            };
+
+            const githubFetch = async (path, options = {}) => {
+                return githubApi(`contents/${path}${!options.method || options.method === 'GET' ? `?ref=${config.branch || 'main'}` : ''}`, options);
+            };
+
+            // Helper to get file path from downloadUrl
+            const getPathFromUrl = (url) => {
+                const urlParts = url.split('/');
+                const branch = config.branch || 'main';
+                const mainIndex = urlParts.indexOf(branch);
+                if (mainIndex === -1) return null;
+                return urlParts.slice(mainIndex + 1).join('/');
             };
 
             const fetchDatabase = async () => {
@@ -468,52 +481,23 @@
                 setLoading(true);
                 setError('');
                 try {
-                    // 1. Get path from downloadUrl
-                    // Example: https://raw.githubusercontent.com/owner/repo/main/uploads/bca/1st/file.pdf
-                    // We need 'uploads/bca/1st/file.pdf'
-                    const urlParts = doc.downloadUrl.split('/');
-                    const mainIndex = urlParts.indexOf(config.branch || 'main');
-                    if (mainIndex === -1) throw new Error("Could not determine file path from URL. Is it in the repository?");
-                    const filePath = urlParts.slice(mainIndex + 1).join('/');
+                    // 1. Prepare updated database
+                    const updatedDb = documents.filter(d => d.id !== doc.id);
+                    const dbContent = JSON.stringify(updatedDb, null, 2);
 
-                    // 2. Fetch file to get SHA
-                    const fileRes = await githubFetch(filePath);
-                    if (fileRes.ok) {
-                        const fileData = await fileRes.json();
-                        const sha = fileData.sha;
-
-                        // 3. Delete file from GitHub
-                        const delRes = await githubFetch(filePath, {
-                            method: 'DELETE',
-                            body: JSON.stringify({
-                                message: `refactor: delete resource ${doc.subjectCode}`,
-                                sha: sha,
-                                branch: config.branch
-                            })
-                        });
-                        if (!delRes.ok) console.warn("Failed to delete physical file, it might already be gone.");
+                    // 2. Get file path
+                    const filePath = getPathFromUrl(doc.downloadUrl);
+                    
+                    const operations = [
+                        { path: 'database.json', content: dbContent }
+                    ];
+                    
+                    if (filePath) {
+                        operations.push({ path: filePath, delete: true });
                     }
 
-                    // 4. Update database.json
-                    const dbFetchRes = await githubFetch('database.json');
-                    if (!dbFetchRes.ok) throw new Error("Failed to fetch database.json for update");
-                    
-                    const dbData = await dbFetchRes.json();
-                    let currentDb = JSON.parse(base64ToText(dbData.content));
-                    
-                    const updatedDb = currentDb.filter(d => d.id !== doc.id);
-
-                    const dbUpdateRes = await githubFetch('database.json', {
-                        method: 'PUT',
-                        body: JSON.stringify({
-                            message: `update: remove ${doc.subjectCode} from database.json`,
-                            content: textToBase64(JSON.stringify(updatedDb, null, 2)),
-                            sha: dbData.sha,
-                            branch: config.branch
-                        })
-                    });
-
-                    if (!dbUpdateRes.ok) throw new Error("Failed to sync database.json after deletion");
+                    // 3. Commit both changes in ONE commit
+                    await multiCommit(`refactor: delete resource ${doc.subjectCode} and update database`, operations);
 
                     setDocuments(updatedDb);
                 } catch (err) {
@@ -623,30 +607,16 @@
                 setLoading(true);
                 setError('');
                 try {
-                    const dbFetchRes = await githubFetch('database.json');
-                    if (!dbFetchRes.ok) throw new Error("Failed to fetch database.json");
-                    
-                    const dbData = await dbFetchRes.json();
-                    let currentDb = JSON.parse(base64ToText(dbData.content));
-                    
-                    const updatedDb = currentDb.map(d => {
+                    const updatedDb = documents.map(d => {
                         if (d.id === doc.id) {
                             return { ...d, verified: true };
                         }
                         return d;
                     });
 
-                    const dbUpdateRes = await githubFetch('database.json', {
-                        method: 'PUT',
-                        body: JSON.stringify({
-                            message: `update: verify resource ${doc.subjectCode}`,
-                            content: textToBase64(JSON.stringify(updatedDb, null, 2)),
-                            sha: dbData.sha,
-                            branch: config.branch
-                        })
-                    });
-
-                    if (!dbUpdateRes.ok) throw new Error("Failed to sync database.json after verification");
+                    await multiCommit(`update: verify resource ${doc.subjectCode}`, [
+                        { path: 'database.json', content: JSON.stringify(updatedDb, null, 2) }
+                    ]);
 
                     setDocuments(updatedDb);
                 } catch (err) {
@@ -656,69 +626,90 @@
                 }
             };
 
+            const multiCommit = async (message, operations) => {
+                const branchName = config.branch || 'main';
+                
+                // 1. Get latest commit SHA
+                const branchRes = await githubApi(`branches/${branchName}`);
+                if (!branchRes.ok) throw new Error("Failed to fetch branch info");
+                const branchData = await branchRes.json();
+                const lastCommitSha = branchData.commit.sha;
+                const baseTreeSha = branchData.commit.commit.tree.sha;
+
+                // 2. Create new tree
+                const treeRes = await githubApi(`git/trees`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        base_tree: baseTreeSha,
+                        tree: operations.map(op => ({
+                            path: op.path,
+                            mode: '100644',
+                            type: 'blob',
+                            sha: op.delete ? null : undefined,
+                            content: op.delete ? undefined : op.content
+                        }))
+                    })
+                });
+                
+                if (!treeRes.ok) {
+                    const err = await treeRes.json();
+                    throw new Error(`Tree creation failed: ${err.message}`);
+                }
+                const treeData = await treeRes.json();
+
+                // 3. Create commit
+                const commitRes = await githubApi(`git/commits`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        message,
+                        tree: treeData.sha,
+                        parents: [lastCommitSha]
+                    })
+                });
+                if (!commitRes.ok) throw new Error("Commit creation failed");
+                const commitData = await commitRes.json();
+
+                // 4. Update branch ref
+                const refRes = await githubApi(`git/refs/heads/${branchName}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ sha: commitData.sha })
+                });
+                if (!refRes.ok) throw new Error("Branch update failed");
+                
+                return commitData;
+            };
+
 
             const handleRejectAll = async () => {
                 const pendingDocs = documents.filter(d => d.verified === false);
                 if (pendingDocs.length === 0) return;
-                if (!confirm(`⚠️ REJECT ALL: This will permanently delete ${pendingDocs.length} spam document(s) from GitHub and the database. This cannot be undone!`)) return;
+                if (!confirm(`⚠️ REJECT ALL: This will permanently delete ${pendingDocs.length} spam document(s) and update the database in ONE commit. This cannot be undone!`)) return;
 
                 setLoading(true);
                 setError('');
-                let deletedCount = 0;
-                let failedCount = 0;
 
                 try {
-                    // Step 1: Delete all physical PDF files from GitHub (in parallel)
-                    await Promise.all(pendingDocs.map(async (doc) => {
-                        try {
-                            const urlParts = doc.downloadUrl.split('/');
-                            const mainIndex = urlParts.indexOf(config.branch || 'main');
-                            if (mainIndex === -1) return;
-                            const filePath = urlParts.slice(mainIndex + 1).join('/');
-
-                            const fileRes = await githubFetch(filePath);
-                            if (fileRes.ok) {
-                                const fileData = await fileRes.json();
-                                const delRes = await githubFetch(filePath, {
-                                    method: 'DELETE',
-                                    body: JSON.stringify({
-                                        message: `spam: bulk-reject ${doc.subjectCode}`,
-                                        sha: fileData.sha,
-                                        branch: config.branch
-                                    })
-                                });
-                                if (delRes.ok) deletedCount++;
-                                else failedCount++;
-                            }
-                        } catch (e) {
-                            failedCount++;
-                            console.warn(`Failed to delete file for ${doc.subjectCode}`, e);
-                        }
-                    }));
-
-                    // Step 2: Remove all pending docs from database.json in one write
-                    const dbFetchRes = await githubFetch('database.json');
-                    if (!dbFetchRes.ok) throw new Error('Failed to fetch database.json for bulk reject');
-
-                    const dbData = await dbFetchRes.json();
-                    const currentDb = JSON.parse(base64ToText(dbData.content));
+                    // 1. Prepare updated database
                     const pendingIds = new Set(pendingDocs.map(d => d.id));
-                    const cleanedDb = currentDb.filter(d => !pendingIds.has(d.id));
+                    const cleanedDb = documents.filter(d => !pendingIds.has(d.id));
+                    
+                    // 2. Collect operations
+                    const operations = [
+                        { path: 'database.json', content: JSON.stringify(cleanedDb, null, 2) }
+                    ];
 
-                    const dbUpdateRes = await githubFetch('database.json', {
-                        method: 'PUT',
-                        body: JSON.stringify({
-                            message: `spam: bulk-reject ${pendingDocs.length} pending documents — cleaned by admin`,
-                            content: textToBase64(JSON.stringify(cleanedDb, null, 2)),
-                            sha: dbData.sha,
-                            branch: config.branch
-                        })
+                    pendingDocs.forEach(doc => {
+                        const filePath = getPathFromUrl(doc.downloadUrl);
+                        if (filePath) {
+                            operations.push({ path: filePath, delete: true });
+                        }
                     });
 
-                    if (!dbUpdateRes.ok) throw new Error('Failed to update database.json after bulk reject');
+                    // 3. Execute bulk commit
+                    await multiCommit(`moderation: bulk-reject ${pendingDocs.length} spam documents — cleaned by admin`, operations);
 
                     setDocuments(cleanedDb);
-                    alert(`✅ Done! Rejected & deleted ${pendingDocs.length} spam document(s).${failedCount > 0 ? ` (${failedCount} file(s) may already have been removed from storage.)` : ''}`);
+                    alert(`✅ Done! Rejected & deleted ${pendingDocs.length} spam document(s) in a single commit.`);
                     setView('dashboard');
                 } catch (err) {
                     setError(err.message || 'Bulk rejection failed.');
