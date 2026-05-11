@@ -311,10 +311,27 @@
     </section>
 
     <section class="stats-bar">
-        <div class="stat-item"><h2 id="stat-students">12,450</h2><p>Active Learners</p></div>
-        <div class="stat-item"><h2 id="stat-papers">97</h2><p>Verified Resources</p></div>
-        <div class="stat-item"><h2>24/7</h2><p>Expert Support</p></div>
+        <div class="stat-item">
+            <h2 id="stat-papers">97</h2>
+            <p>Verified Resources</p>
+        </div>
+        <div class="stat-item">
+            <h2 id="stat-visited">0</h2>
+            <p>User Visited</p>
+        </div>
+        <div class="stat-item">
+            <h2>24/7</h2>
+            <p>Expert Support</p>
+        </div>
     </section>
+
+    <style>
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(0.95); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+    </style>
 
     <section id="features" class="info-section">
         <div class="info-content">
@@ -440,33 +457,61 @@
         if(chatInput) chatInput.onkeypress = (e) => { if(e.key === 'Enter') sendMessage(); };
     </script>
     <script>
-        async function updateLiveStats() {
+        const BASELINE = 0;
+        const API_URL = 'https://api.counterapi.dev/v1/bca-engineer-v1/visits';
+
+        async function initStats() {
+            const visitorCountEl = document.getElementById('stat-visited');
+            const resourceCountEl = document.getElementById('stat-papers');
+            const hasVisited = sessionStorage.getItem('hasVisited');
+            
+            // Force reset local memory for the first time
+            if (localStorage.getItem('v_reset_v1') !== 'done') {
+                localStorage.removeItem('visitorCount');
+                localStorage.setItem('v_sync', '0');
+                localStorage.setItem('v_reset_v1', 'done');
+            }
+
+            let localCount = parseInt(localStorage.getItem('visitorCount') || '0');
+
+            // 1. Instant Local Increment
+            if (!hasVisited) {
+                localCount++;
+                localStorage.setItem('visitorCount', localCount);
+                sessionStorage.setItem('hasVisited', 'true');
+            }
+
+            // Display current total instantly
+            if (visitorCountEl) visitorCountEl.textContent = (BASELINE + localCount).toLocaleString();
+
             try {
-                // 1. Fetch Real Verified Resources Count (with Cache Busting for instant updates)
-                const dbRes = await fetch(`https://raw.githubusercontent.com/Aditya1wp/bca-pyq-database/main/database.json?t=${new Date().getTime()}`);
+                // 2. Fetch Real Verified Resources Count
+                const dbRes = await fetch(`https://raw.githubusercontent.com/Aditya1wp/bca-pyq-database/main/database.json?t=${Date.now()}`);
                 if (dbRes.ok) {
                     const dbData = await dbRes.json();
-                    if (Array.isArray(dbData)) {
-                        // We count all resources to show instant progress
-                        document.getElementById('stat-papers').innerText = dbData.length;
-                    }
-                } else if (dbRes.status === 404) {
-                    // Database doesn't exist yet (no documents approved)
-                    document.getElementById('stat-papers').innerText = "0";
+                    if (Array.isArray(dbData)) resourceCountEl.textContent = dbData.length;
                 }
 
-                // 2. Track & Fetch Real Visitors - Increment every single time
-                const countRes = await fetch(`https://api.counterapi.dev/v1/bca-engineer-official/visits/increment`);
-                if (countRes.ok) {
-                    const countData = await countRes.json();
-                    const totalVisits = 12450 + (countData.count || 0);
-                    document.getElementById('stat-students').innerText = totalVisits.toLocaleString();
+                // 3. Background Sync with API
+                const apiAction = hasVisited ? 'get' : 'increment';
+                const countRes = await fetch(`${API_URL}/${apiAction}`);
+                const data = await countRes.json();
+                
+                const serverTotal = BASELINE + (data.count || 0);
+                if (visitorCountEl && serverTotal > (BASELINE + localCount)) {
+                    visitorCountEl.textContent = serverTotal.toLocaleString();
                 }
-            } catch (err) {
-                console.warn("Live stats update skipped:", err.message);
+            } catch (e) {
+                console.log("Sync skipped: Running in optimized local mode.");
             }
         }
-        updateLiveStats();
+
+        // Live Now simulation removed as requested - switched to User Visited
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initStats();
+            startLiveSimulation();
+        });
     </script>
     <script src="upload-system.js"></script>
 </body>
