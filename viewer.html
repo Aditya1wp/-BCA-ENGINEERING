@@ -77,7 +77,7 @@
         <div id="main-content" class="hidden fade-in flex flex-col gap-8">
 
             <!-- STEP 1: Select Year (Horizontal Top Bar) -->
-            <div class="text-center">
+            <div id="year-section" class="text-center">
                 <h3 class="text-xs font-black text-emerald-400 tracking-[0.3em] uppercase mb-4 flex items-center justify-center gap-2">
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                     Select Exam Year
@@ -317,7 +317,15 @@
 
             document.getElementById('empty-state').classList.add('hidden');
             document.getElementById('main-content').classList.remove('hidden');
-            renderYearPills(); // Step 1: Render Years
+
+            if (docType === 'notes') {
+                // For Notes, skip years and show subjects immediately
+                document.getElementById('year-section').classList.add('hidden');
+                renderSubjects(); 
+            } else {
+                document.getElementById('year-section').classList.remove('hidden');
+                renderYearPills(); // Step 1: Render Years for PYQ
+            }
         }
 
         // ===== RENDER YEAR PILLS (Step 1: Horizontal) =====
@@ -348,14 +356,14 @@
         // ===== RENDER SUBJECT PILLS (Step 2: Vertical) =====
         function renderSubjects() {
             const container = document.getElementById('subject-pills');
-            if (!selectedYear) {
+            if (docType !== 'notes' && !selectedYear) {
                 container.innerHTML = '<div class="text-slate-600 text-xs text-center py-4 w-full">Select year first</div>';
                 return;
             }
 
-            // Filter docs for the selected year
-            const docsForYear = allDocs.filter(d => parseInt(d.year) === selectedYear);
-            const subjects = [...new Set(docsForYear.map(d => d.subjectCode))].sort();
+            // Filter docs for the selected year (or all if Notes)
+            const docsForList = docType === 'notes' ? allDocs : allDocs.filter(d => parseInt(d.year) === selectedYear);
+            const subjects = [...new Set(docsForList.map(d => d.subjectCode))].sort();
 
             container.innerHTML = subjects.map(sub => {
                 const isActive = sub === selectedSubject;
@@ -377,7 +385,10 @@
 
         // ===== SHOW DOCUMENT =====
         function showDocument() {
-            const doc = allDocs.find(d => d.subjectCode === selectedSubject && parseInt(d.year) === selectedYear);
+            const doc = docType === 'notes' 
+                ? allDocs.find(d => d.subjectCode === selectedSubject)
+                : allDocs.find(d => d.subjectCode === selectedSubject && parseInt(d.year) === selectedYear);
+            
             const resultSection = document.getElementById('result-section');
             const promptState = document.getElementById('prompt-state');
 

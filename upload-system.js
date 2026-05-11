@@ -247,6 +247,23 @@
         }
     };
 
+    const docTypeSelect = document.getElementById('u-doctype');
+    const yearInput = document.getElementById('u-year');
+
+    docTypeSelect.onchange = (e) => {
+        if (e.target.value === 'notes') {
+            yearInput.disabled = true;
+            yearInput.value = "";
+            yearInput.placeholder = "N/A for Notes";
+            yearInput.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+            yearInput.disabled = false;
+            yearInput.value = new Date().getFullYear();
+            yearInput.placeholder = "e.g. 2024";
+            yearInput.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    };
+
     dropArea.onclick = () => fileInput.click();
     fileInput.onchange = (e) => {
         selectedFile = e.target.files[0];
@@ -287,7 +304,7 @@
                         code: document.getElementById('u-code').value.toUpperCase(),
                         name: document.getElementById('u-name').value,
                         sem: document.getElementById('u-sem').value,
-                        year: parseInt(document.getElementById('u-year').value),
+                        year: parseInt(document.getElementById('u-year').value) || 0,
                         docType: document.getElementById('u-doctype').value
                     })
                 });
