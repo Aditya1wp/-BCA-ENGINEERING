@@ -274,7 +274,7 @@
 
     <nav>
         <div style="display: flex; align-items: center; gap: 20px;">
-            <button onclick="window.history.back()" style="background: transparent; border: 1px solid var(--glass-border); color: #94a3b8; width: 40px; height: 40px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s;">&larr;</button>
+            <button id="back-btn" style="background: transparent; border: 1px solid var(--glass-border); color: #94a3b8; width: 40px; height: 40px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s;">&larr;</button>
             <a href="index.html" style="text-decoration: none; color: white; display: flex; align-items: center; gap: 12px;">
                 <img src="logo.png" alt="Logo" style="height: 35px;">
                 <div class="logo-text">BCA <span style="color: var(--accent)">ENGINEER</span></div>
@@ -343,6 +343,13 @@
 
         document.getElementById('page-title').innerText = `${course.toUpperCase()} ${docTypeLabel}`;
         document.getElementById('course-label').innerText = `${course.toUpperCase()}_SYSTEM_ACTIVE`;
+        
+        const backBtn = document.getElementById('back-btn');
+        if (backBtn) {
+            backBtn.onclick = () => {
+                window.location.href = `resource-type.html?course=${encodeURIComponent(course)}`;
+            };
+        }
         const resLink = document.getElementById('nav-resource-link');
         if (resLink) resLink.href = `resource-type.html?course=${encodeURIComponent(course)}`;
 

@@ -254,10 +254,13 @@
     <div class="menu-backdrop" id="menu-backdrop" onclick="toggleMenu()"></div>
 
     <nav>
-        <a href="index.html" style="text-decoration: none; color: white; display: flex; align-items: center; gap: 12px;">
-            <img src="logo.png" alt="Logo" style="height: 35px;">
-            <div class="logo-text">BCA <span style="color: var(--accent)">ENGINEER</span></div>
-        </a>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <button id="back-btn" style="background: transparent; border: 1px solid var(--glass-border); color: #94a3b8; width: 40px; height: 40px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s;">&larr;</button>
+            <a href="index.html" style="text-decoration: none; color: white; display: flex; align-items: center; gap: 12px;">
+                <img src="logo.png" alt="Logo" style="height: 35px;">
+                <div class="logo-text">BCA <span style="color: var(--accent)">ENGINEER</span></div>
+            </a>
+        </div>
 
         <div class="nav-controls">
             <button id="main-upload-btn" onclick="openUploadModal()">
@@ -328,7 +331,7 @@
             </div>
 
             <div style="margin-top: 50px; text-align: center; padding: 20px; border-top: 1px solid var(--glass-border);">
-                <button onclick="window.history.back()" style="background: transparent; border: 1px solid var(--glass-border); color: #94a3b8; padding: 10px 20px; border-radius: 12px; cursor: pointer; transition: 0.3s; font-family: 'JetBrains Mono'; font-size: 10px; letter-spacing: 1px;">&larr; RETURN_TO_PREVIOUS_NODE</button>
+                <button id="back-btn-bottom" style="background: transparent; border: 1px solid var(--glass-border); color: #94a3b8; padding: 10px 20px; border-radius: 12px; cursor: pointer; transition: 0.3s; font-family: 'JetBrains Mono'; font-size: 10px; letter-spacing: 1px;">&larr; RETURN_TO_PREVIOUS_NODE</button>
             </div>
         </div>
     </main>
@@ -341,6 +344,14 @@
 
         document.getElementById('page-title').innerText = `${course.toUpperCase()} Console`;
         document.getElementById('page-desc').innerText = `Select the primary resource stream for your ${course.toUpperCase()} academic track.`;
+
+        const backHandler = () => {
+            window.location.href = `courses.html?type=${encodeURIComponent(type)}`;
+        };
+        const b1 = document.getElementById('back-btn');
+        const b2 = document.getElementById('back-btn-bottom');
+        if (b1) b1.onclick = backHandler;
+        if (b2) b2.onclick = backHandler;
 
         // Navigation Logic
         document.getElementById('pyq-card').addEventListener('click', () => {

@@ -151,9 +151,12 @@
     <div class="menu-backdrop" id="menu-backdrop" onclick="toggleMenu()"></div>
 
     <nav class="fixed top-0 w-full z-[1100] glass-card border-b border-white/5 py-4 px-6 flex justify-between items-center" style="border-radius: 0;">
-        <div class="flex items-center gap-4 cursor-pointer" onclick="location.href='index.html'">
-            <img src="logo.png" alt="Logo" class="h-10 w-auto">
-            <span class="font-bold text-xl tracking-tighter logo-text" style="font-family: 'JetBrains Mono';">BCA <span class="text-cyan-400">ENGINEER</span></span>
+        <div class="flex items-center gap-4">
+            <button id="back-btn" style="background: transparent; border: 1px solid var(--glass-border); color: #94a3b8; width: 40px; height: 40px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s;">&larr;</button>
+            <div class="flex items-center gap-4 cursor-pointer" onclick="location.href='index.html'">
+                <img src="logo.png" alt="Logo" class="h-10 w-auto">
+                <span class="font-bold text-xl tracking-tighter logo-text" style="font-family: 'JetBrains Mono';">BCA <span class="text-cyan-400">ENGINEER</span></span>
+            </div>
         </div>
         
         <div class="nav-controls">
@@ -316,6 +319,14 @@
         window.toggleMenu = toggleMenu;
 
         if(menuToggle) menuToggle.addEventListener('click', toggleMenu);
+
+        // Back button logic
+        const backBtn = document.getElementById('back-btn');
+        if (backBtn) {
+            backBtn.onclick = () => {
+                window.location.href = 'categories.html';
+            };
+        }
     </script>
 
     
