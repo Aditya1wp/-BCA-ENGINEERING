@@ -125,6 +125,7 @@
             });
             const [renameFolder, setRenameFolder] = useState({ oldName: '', newName: '', showModal: false });
             const [editDoc, setEditDoc] = useState({ doc: null, show: false, syncFile: true });
+            const [changePasskeyModal, setChangePasskeyModal] = useState({ show: false, current: '', new: '' });
 
             // Initialize
             useEffect(() => {
@@ -765,6 +766,53 @@
                 }
             };
 
+            const handleChangePasskey = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                setError('');
+                try {
+                    const currentMsgBuffer = new TextEncoder().encode(changePasskeyModal.current);
+                    const currentHashBuffer = await crypto.subtle.digest('SHA-256', currentMsgBuffer);
+                    const currentHashHex = Array.from(new Uint8Array(currentHashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+                    
+                    const expectedHash = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
+                    if (currentHashHex !== expectedHash) {
+                        throw new Error("Current passkey is incorrect.");
+                    }
+
+                    const newMsgBuffer = new TextEncoder().encode(changePasskeyModal.new);
+                    const newHashBuffer = await crypto.subtle.digest('SHA-256', newMsgBuffer);
+                    const newHashHex = Array.from(new Uint8Array(newHashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+                    const fileRes = await githubFetch('github-cms.html');
+                    if (!fileRes.ok) throw new Error("Could not fetch github-cms.html to update it.");
+                    const fileData = await fileRes.json();
+                    
+                    let htmlContent = base64ToText(fileData.content);
+                    const regex = /const expectedHash = '[a-f0-9]{64}';/g;
+                    htmlContent = htmlContent.replace(regex, `const expectedHash = '${newHashHex}';`);
+
+                    const updateRes = await githubFetch('github-cms.html', {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            message: "security: change CMS passkey via UI",
+                            content: textToBase64(htmlContent),
+                            sha: fileData.sha,
+                            branch: config.branch
+                        })
+                    });
+
+                    if (!updateRes.ok) throw new Error("Failed to save new passkey to GitHub.");
+
+                    alert("Passkey successfully changed! The new passkey is now active globally.");
+                    setChangePasskeyModal({ show: false, current: '', new: '' });
+                } catch (err) {
+                    setError(err.message || "Failed to change passkey.");
+                } finally {
+                    setLoading(false);
+                }
+            };
+
             // --- UI COMPONENTS ---
             
             if (isLocked) {
@@ -892,6 +940,9 @@
                                 </button>
                                 {isConfigured && (
                                     <>
+                                        <button type="button" onClick={() => setChangePasskeyModal({ show: true, current: '', new: '' })} className="w-full py-3 mt-2 rounded-xl font-bold transition-all duration-300 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 border border-indigo-500/30">
+                                            Change Passkey
+                                        </button>
                                         <button type="button" onClick={() => { localStorage.removeItem('github_cms_config'); setConfig({ token: '', owner: '', repo: '', branch: 'main' }); setIsConfigured(false); setDocuments([]); }} className="w-full py-3 mt-2 rounded-xl font-bold transition-all duration-300 bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30">
                                             Logout
                                         </button>
@@ -902,6 +953,39 @@
                                 )}
                             </form>
                         </div>
+
+                        {changePasskeyModal.show && (
+                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+                                <div className="glass-panel p-8 rounded-3xl w-full max-w-sm border-indigo-500/30 text-center relative z-20">
+                                    <h3 className="text-xl font-black text-white mb-2">Change Passkey</h3>
+                                    <p className="text-slate-400 text-xs mb-6">Update the global CMS passkey.</p>
+                                    <form onSubmit={handleChangePasskey} className="space-y-4">
+                                        <input 
+                                            type="password" 
+                                            required
+                                            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-white font-mono text-sm tracking-widest text-center"
+                                            placeholder="Current Passkey"
+                                            value={changePasskeyModal.current}
+                                            onChange={e => setChangePasskeyModal({...changePasskeyModal, current: e.target.value})}
+                                        />
+                                        <input 
+                                            type="password" 
+                                            required
+                                            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-white font-mono text-sm tracking-widest text-center"
+                                            placeholder="New Passkey"
+                                            value={changePasskeyModal.new}
+                                            onChange={e => setChangePasskeyModal({...changePasskeyModal, new: e.target.value})}
+                                        />
+                                        <button type="submit" disabled={loading} className={`w-full py-3 rounded-xl font-bold uppercase tracking-widest ${loading ? 'bg-indigo-500/50 cursor-not-allowed' : 'bg-indigo-500 hover:bg-indigo-400'} text-white shadow-[0_0_20px_rgba(99,102,241,0.3)] transition-all`}>
+                                            {loading ? 'Updating...' : 'Save New Passkey'}
+                                        </button>
+                                        <button type="button" onClick={() => setChangePasskeyModal({ show: false, current: '', new: '' })} className="mt-4 text-xs font-bold text-slate-500 hover:text-slate-300 uppercase tracking-widest">
+                                            Cancel
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 );
             }
