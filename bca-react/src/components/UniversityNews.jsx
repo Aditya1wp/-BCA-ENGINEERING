@@ -86,7 +86,7 @@ const UniversityNews = () => {
             });
         }
         
-        setNews(extractedNews.slice(0, 15)); // Take top 15 recent notices
+        setNews(extractedNews.slice(0, 30)); // Take top 30 recent notices
         setLoading(false);
       } catch (error) {
         console.error("Error fetching news:", error);
