@@ -45,6 +45,27 @@ app.get('/api/upload', async (req, res) => {
     }
 });
 
+// Proxy endpoint to bypass CORS and adblockers for PUP scraping
+app.get('/api/news', async (req, res) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    try {
+        const response = await fetch('https://www.pup.ac.in/', {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+                'Accept': 'text/html,application/xhtml+xml,application/xml'
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`PUP server responded with ${response.status}`);
+        }
+        const html = await response.text();
+        res.send({ contents: html });
+    } catch (error) {
+        console.error("Local proxy fetch error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.listen(port, () => {
     console.log(`Local dev server running at http://localhost:${port}`);
     console.log(`Please open your browser to http://localhost:${port} to see the changes!`);
