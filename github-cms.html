@@ -37,6 +37,8 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- SHA-256 for Passkey -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
     
     <style>
         body { background-color: #0B1120; color: #f8fafc; }
@@ -771,18 +773,14 @@
                 setLoading(true);
                 setError('');
                 try {
-                    const currentMsgBuffer = new TextEncoder().encode(changePasskeyModal.current);
-                    const currentHashBuffer = await crypto.subtle.digest('SHA-256', currentMsgBuffer);
-                    const currentHashHex = Array.from(new Uint8Array(currentHashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+                    const currentHashHex = sha256(changePasskeyModal.current);
                     
                     const expectedHash = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
                     if (currentHashHex !== expectedHash) {
                         throw new Error("Current passkey is incorrect.");
                     }
 
-                    const newMsgBuffer = new TextEncoder().encode(changePasskeyModal.new);
-                    const newHashBuffer = await crypto.subtle.digest('SHA-256', newMsgBuffer);
-                    const newHashHex = Array.from(new Uint8Array(newHashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+                    const newHashHex = sha256(changePasskeyModal.new);
 
                     const fileRes = await githubFetch('github-cms.html');
                     if (!fileRes.ok) throw new Error("Could not fetch github-cms.html to update it.");
@@ -820,10 +818,7 @@
                     e.preventDefault();
                     
                     // Hash the user input using SHA-256
-                    const msgBuffer = new TextEncoder().encode(passkeyInput);
-                    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-                    const hashArray = Array.from(new Uint8Array(hashBuffer));
-                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                    const hashHex = sha256(passkeyInput);
                     
                     // This is the SHA-256 hash for "admin123"
                     // No one can reverse-engineer the original password from this hash
