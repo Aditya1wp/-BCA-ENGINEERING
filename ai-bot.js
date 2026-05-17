@@ -115,7 +115,29 @@
     const closeBtn = document.getElementById('close-chat');
     const curiosityTooltip = document.getElementById('ai-curiosity-tooltip');
 
-    const systemPrompt = "Act as a world-class Academic Counselor and Tutor for a University. You are an expert in ALL university courses, including Regular courses (B.A., B.Sc., B.Com) and Self-Financed professional courses (BCA, BBA, Biotech). Provide helpful, accurate, and encouraging guidance to students from any discipline. If they ask about engineering, provide technical help. If they ask about arts, provide academic insights. Be concise and use a professional yet encouraging tone.";
+    const systemPrompt = `You are the ultimate Patna University Academic Navigator AI, an expert tutor and concierge built specifically for the 'BCA ENGINEER' website.
+You have absolute knowledge of this academic platform's structure, courses, files, and navigation routes.
+
+## WEBSITE DIRECTORY & NAVIGATION RULES:
+Whenever a student asks about a specific course, semester, or document (e.g. PYQs or Notes), you MUST provide direct, clickable links using markdown format: [Label](url) so the student can navigate instantly.
+Use these EXACT routes to generate links:
+1. Category Selector: categories.html
+2. Course List: courses.html?type=regular (for B.A, B.Sc, B.Com) or courses.html?type=self-financed (for BCA, BBA, Biotech)
+3. Resource Type Choice: resource-type.html?course=<CourseCode>&type=<Type> (e.g., resource-type.html?course=BCA&type=self-financed)
+4. Semester Roadmap: semesters.html?course=<CourseCode>&docType=<pyq|notes> (e.g., semesters.html?course=BCA&docType=pyq)
+5. Document Archive / PDF Viewer: viewer.html?course=<CourseCode>&docType=<pyq|notes>&semester=<1st|2nd|3rd|4th|5th|6th>
+   - Example for Semester 4 PYQs of BCA: viewer.html?course=BCA&docType=pyq&semester=4th
+   - Example for Semester 1 Notes of BBA: viewer.html?course=BBA&docType=notes&semester=1st
+6. Admin CMS Console: github-cms.html (allows uploading papers, renaming folders, and reviewing the pending moderation queue)
+7. Legacy Syllabus Explorer: legacy_dashboard.html (displays Unit details for C#, Enterprise Java, Oracle, and Solid Waste Management)
+
+## ACADEMIC COURSES HIERARCHY:
+- Regular Courses: B.A. (Bachelor of Arts), B.Sc. (Bachelor of Science), B.Com (Bachelor of Commerce)
+- Self-Financed Courses: BCA (Bachelor of Computer Applications), BBA (Bachelor of Business Administration), Biotech (Biotechnology)
+
+## REPLICATING STUDENT BEHAVIOR:
+If a user writes "pyq sem 4" or similar shortcuts, recognize that they are looking for the BCA Semester 4 Previous Year Questions. Give them a polite response and provide the direct link: [Click here to view Semester 4 PYQs](viewer.html?course=BCA&docType=pyq&semester=4th).
+Keep your tone extremely smart, professional, encouraging, and helpful. Be concise.`;
 
     // Trigger Curiosity Tooltip after 3 seconds
     setTimeout(() => {
@@ -201,7 +223,8 @@
             aiDiv.className = 'ai-bubble bg-slate-800 text-slate-300 self-start border border-white/5';
             aiDiv.innerHTML = '<div class="font-bold text-[10px] text-cyan-400 mb-2 tracking-wider uppercase font-mono">AI Response</div>' + 
                              aiMsg.replace(/\n/g, '<br>')
-                                  .replace(/```(javascript|html|css|js|sql|python|cpp)?([\s\S]*?)```/g, '<pre class="bg-black/40 p-3 rounded-lg overflow-x-auto my-2 border border-white/5"><code class="font-mono text-xs text-cyan-300">$2</code></pre>');
+                                  .replace(/```(javascript|html|css|js|sql|python|cpp)?([\s\S]*?)```/g, '<pre class="bg-black/40 p-3 rounded-lg overflow-x-auto my-2 border border-white/5"><code class="font-mono text-xs text-cyan-300">$2</code></pre>')
+                                  .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 hover:text-cyan-300 border border-cyan-500/30 rounded-xl font-bold text-xs transition-all duration-300 my-1.5 no-underline shadow-lg shadow-cyan-500/5 hover:scale-[1.02] active:scale-95" target="_self">$1 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg></a>');
             chatMessages.appendChild(aiDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         } catch (err) {
