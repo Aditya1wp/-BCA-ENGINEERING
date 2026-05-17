@@ -8,17 +8,39 @@ const UniversityNews = () => {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        // Fetching through a proxy to avoid CORS issues
-        const proxyUrl = `http://localhost:3000/api/news`;
+        // List of proxies (starts with local server if available, falls back to public proxies for GitHub Pages)
+        const targetUrl = 'https://www.pup.ac.in/';
+        const proxies = [
+            `http://localhost:3000/api/news`, // Local Express server
+            `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`, // Reliable public proxy
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}` // Fallback proxy
+        ];
         
-        const response = await fetch(proxyUrl);
-        if (!response.ok) throw new Error('Network response was not ok');
+        let html = null;
         
-        const data = await response.json();
-        const html = data.contents;
+        // Try each proxy sequentially until one succeeds
+        for (let proxyUrl of proxies) {
+            try {
+                const response = await fetch(proxyUrl);
+                if (response.ok) {
+                    if (proxyUrl.includes('allorigins.win/get')) {
+                        const data = await response.json();
+                        html = data.contents;
+                    } else {
+                        html = await response.text();
+                    }
+                    
+                    if (html && html.includes('</body>')) {
+                        break; // Success! Exit the fallback loop
+                    }
+                }
+            } catch (e) {
+                console.warn(`Proxy ${proxyUrl} failed, trying next...`);
+            }
+        }
         
-        if (!html || !html.includes('</body>')) {
-          throw new Error("Invalid HTML content received from proxy.");
+        if (!html) {
+          throw new Error("All proxy servers are currently blocked or unavailable.");
         }
         
         // Parse the HTML using the browser's built-in DOMParser
