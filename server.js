@@ -4,8 +4,12 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import handler from './api/chat.js';
 import uploadHandler from './api/upload.js';
+import newsHandler from './api/news.js';
 
 dotenv.config();
+
+// Bypass SSL certificate issues often found on university web servers
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const app = express();
 const port = 3000;
@@ -47,19 +51,8 @@ app.get('/api/upload', async (req, res) => {
 
 // Proxy endpoint to bypass CORS and adblockers for PUP scraping
 app.get('/api/news', async (req, res) => {
-    res.header("Access-Control-Allow-Origin", "*");
     try {
-        const response = await fetch('https://www.pup.ac.in/', {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-                'Accept': 'text/html,application/xhtml+xml,application/xml'
-            }
-        });
-        if (!response.ok) {
-            throw new Error(`PUP server responded with ${response.status}`);
-        }
-        const html = await response.text();
-        res.send({ contents: html });
+        await newsHandler(req, res);
     } catch (error) {
         console.error("Local proxy fetch error:", error);
         res.status(500).json({ error: error.message });

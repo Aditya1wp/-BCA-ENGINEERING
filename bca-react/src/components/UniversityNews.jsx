@@ -11,6 +11,7 @@ const UniversityNews = () => {
         // List of proxies (starts with local server if available, falls back to public proxies for GitHub Pages)
         const targetUrl = 'https://www.pup.ac.in/';
         const proxies = [
+            `/api/news`, // Production relative endpoint
             `http://localhost:3000/api/news`, // Local Express server
             `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`, // Reliable public proxy
             `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}` // Fallback proxy
@@ -23,15 +24,26 @@ const UniversityNews = () => {
             try {
                 const response = await fetch(proxyUrl);
                 if (response.ok) {
-                    if (proxyUrl.includes('allorigins.win/get')) {
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
                         const data = await response.json();
-                        html = data.contents;
+                        html = data.contents || data.data || data;
                     } else {
-                        html = await response.text();
+                        const text = await response.text();
+                        // Self-correction in case response is JSON string with text/plain content-type
+                        try {
+                            const parsed = JSON.parse(text);
+                            html = parsed.contents || parsed.data || text;
+                        } catch (e) {
+                            html = text;
+                        }
                     }
                     
-                    if (html && html.includes('</body>')) {
-                        break; // Success! Exit the fallback loop
+                    if (html && html.trim()) {
+                        const lower = html.toLowerCase();
+                        if (lower.includes('</body>') || lower.includes('</html>') || lower.includes('<div') || lower.includes('<a')) {
+                            break; // Success! Exit the fallback loop
+                        }
                     }
                 }
             } catch (e) {
