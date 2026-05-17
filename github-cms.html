@@ -95,6 +95,8 @@
 
         function App() {
             // State
+            const [isLocked, setIsLocked] = useState(() => sessionStorage.getItem('cms_passkey_auth') !== 'true');
+            const [passkeyInput, setPasskeyInput] = useState('');
             const [config, setConfig] = useState({ token: '', owner: '', repo: '', branch: 'main' });
             const [isConfigured, setIsConfigured] = useState(false);
             const [view, setView] = useState('dashboard'); // 'dashboard', 'upload', 'settings', 'moderation'
@@ -765,6 +767,51 @@
 
             // --- UI COMPONENTS ---
             
+            if (isLocked) {
+                const handlePasskeySubmit = (e) => {
+                    e.preventDefault();
+                    if (passkeyInput === 'admin123') {
+                        sessionStorage.setItem('cms_passkey_auth', 'true');
+                        setIsLocked(false);
+                    } else {
+                        alert('Invalid Passkey');
+                        setPasskeyInput('');
+                    }
+                };
+
+                return (
+                    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[#0B1120]">
+                        <div className="absolute -top-40 -right-40 w-96 h-96 bg-cyan-500/10 blur-[100px] pointer-events-none rounded-full"></div>
+                        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-indigo-600/10 blur-[100px] pointer-events-none rounded-full"></div>
+                        
+                        <div className="w-full max-w-sm glass-panel p-8 rounded-3xl shadow-2xl relative z-10 border border-slate-700/50 text-center">
+                            <div className="w-16 h-16 mx-auto bg-cyan-500/10 text-cyan-400 rounded-full flex items-center justify-center mb-6">
+                                <Icons.Shield />
+                            </div>
+                            <h2 className="text-2xl font-black tracking-tight mb-2 text-white">Admin Access</h2>
+                            <p className="text-slate-400 text-sm mb-8">Enter passkey to enter CMS</p>
+                            
+                            <form onSubmit={handlePasskeySubmit} className="space-y-4">
+                                <input 
+                                    type="password" 
+                                    required
+                                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-center text-white font-mono text-xl tracking-widest"
+                                    placeholder="••••••"
+                                    value={passkeyInput}
+                                    onChange={e => setPasskeyInput(e.target.value)}
+                                />
+                                <button type="submit" className="w-full py-4 rounded-xl font-bold transition-all duration-300 uppercase tracking-widest bg-cyan-500 text-[#0f172a] hover:bg-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.3)]">
+                                    Unlock
+                                </button>
+                            </form>
+                            <button onClick={() => window.location.href='index.html'} className="mt-6 text-xs text-slate-500 hover:text-cyan-400 transition-colors uppercase tracking-widest font-bold">
+                                &larr; Return to Website
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
             if (view === 'settings') {
                 return (
                     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
