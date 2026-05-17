@@ -163,7 +163,7 @@ const UniversityNews = () => {
           )}
 
           {!loading && !error && news.length > 0 && (
-            <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[420px] overflow-y-auto pr-2 custom-scrollbar" style={{scrollbarWidth: 'thin', scrollbarColor: '#06b6d4 #0f172a'}}>
+            <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[420px] overflow-y-auto pr-2 pt-4 pb-2 custom-scrollbar" style={{scrollbarWidth: 'thin', scrollbarColor: '#06b6d4 #0f172a'}}>
               {news.map((item, index) => (
                 <li key={index} className="group relative overflow-visible">
                   <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-indigo-500/10 rounded-xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
