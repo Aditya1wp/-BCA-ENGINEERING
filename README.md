@@ -15,10 +15,14 @@ Built with a modern, dark-themed aesthetic, the platform offers a seamless exper
 
 ## 🚀 Key Features
 
+### 📡 Live University Notices (Automated Web Scraper)
+- **Zero-Maintenance Sync:** An automated, client-side web scraper fetches real-time official notices directly from `pup.ac.in`. 
+- **Resilient Fallback Proxies:** Uses a cascading proxy sequence (Local Server → corsproxy.io → allorigins) to bypass browser CORS constraints, adblockers, and GitHub Pages static hosting limitations.
+- **Smart DOM Parsing:** Programmatically extracts and filters PDF links, injecting them securely into the sleek dashboard widget.
+
 ### 📊 Real-Time Analytics
 - **User Visited**: Track community growth with a reactive visitor counter.
 - **Verified Resources**: Live synchronization with the database to show exactly how many documents are approved and available.
-- **Online Now**: A live simulation of active learners across the platform.
 
 ### 📚 Dual Resource Archive
 - **PYQ Archive**: Searchable year-wise collection of university exam papers.
@@ -41,9 +45,10 @@ Built with a modern, dark-themed aesthetic, the platform offers a seamless exper
 
 | Component | Technology |
 | :--- | :--- |
-| **Frontend** | HTML5, Vanilla JavaScript, Tailwind CSS |
-| **Admin Dashboard** | React.js, Babel, Tailwind CSS |
-| **Backend** | Vercel Serverless Functions (Node.js) |
+| **Frontend Core** | HTML5, Vanilla JavaScript, Tailwind CSS |
+| **SPA Migration (bca-react)** | React 18, Vite, React Router, Tailwind CSS |
+| **Admin Dashboard** | GitHub REST API, JavaScript, Tailwind CSS |
+| **Backend / Proxy** | Node.js, Express (Local proxy for scraping) |
 | **Database/Storage** | GitHub REST API, `database.json` |
 | **AI Integration** | Google Gemini API (University AI Guide) |
 
