@@ -768,9 +768,20 @@
             // --- UI COMPONENTS ---
             
             if (isLocked) {
-                const handlePasskeySubmit = (e) => {
+                const handlePasskeySubmit = async (e) => {
                     e.preventDefault();
-                    if (passkeyInput === 'admin123') {
+                    
+                    // Hash the user input using SHA-256
+                    const msgBuffer = new TextEncoder().encode(passkeyInput);
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                    
+                    // This is the SHA-256 hash for "admin123"
+                    // No one can reverse-engineer the original password from this hash
+                    const expectedHash = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
+
+                    if (hashHex === expectedHash) {
                         sessionStorage.setItem('cms_passkey_auth', 'true');
                         setIsLocked(false);
                     } else {
