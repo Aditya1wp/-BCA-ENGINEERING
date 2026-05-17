@@ -833,9 +833,14 @@
                                     Connect Database
                                 </button>
                                 {isConfigured && (
-                                    <button type="button" onClick={() => setView('dashboard')} className="w-full py-3 mt-2 rounded-xl font-bold transition-all duration-300 bg-slate-800 text-slate-300 hover:bg-slate-700">
-                                        Cancel
-                                    </button>
+                                    <>
+                                        <button type="button" onClick={() => { localStorage.removeItem('github_cms_config'); setConfig({ token: '', owner: '', repo: '', branch: 'main' }); setIsConfigured(false); setDocuments([]); }} className="w-full py-3 mt-2 rounded-xl font-bold transition-all duration-300 bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30">
+                                            Logout
+                                        </button>
+                                        <button type="button" onClick={() => setView('dashboard')} className="w-full py-3 mt-2 rounded-xl font-bold transition-all duration-300 bg-slate-800 text-slate-300 hover:bg-slate-700">
+                                            Cancel
+                                        </button>
+                                    </>
                                 )}
                             </form>
                         </div>
