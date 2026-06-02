@@ -70,6 +70,7 @@
             Refresh: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>,
             Bell: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>,
             Shield: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>,
+            Eye: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>,
         };
 
         const MAX_FILE_SIZE_MB = 10;
@@ -128,6 +129,7 @@
             const [renameFolder, setRenameFolder] = useState({ oldName: '', newName: '', showModal: false });
             const [editDoc, setEditDoc] = useState({ doc: null, show: false, syncFile: true });
             const [changePasskeyModal, setChangePasskeyModal] = useState({ show: false, current: '', new: '' });
+            const [previewDoc, setPreviewDoc] = useState(null);
 
             // Initialize
             useEffect(() => {
@@ -1156,6 +1158,116 @@
                         </div>
                     )}
 
+                    {/* PDF Preview Modal */}
+                    {previewDoc && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+                            <div className="glass-panel rounded-3xl w-full max-w-5xl h-[85vh] border-cyan-500/30 flex flex-col overflow-hidden">
+                                {/* Modal Header */}
+                                <div className="p-6 bg-slate-900/80 border-b border-slate-800/80 flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <span className="bg-slate-800 text-cyan-400 border border-slate-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                            {previewDoc.semester} Sem
+                                        </span>
+                                        <span className="text-xs font-mono text-slate-500">{previewDoc.year}</span>
+                                        <h3 className="text-xl font-black text-white">{previewDoc.subjectCode} — {previewDoc.subjectName}</h3>
+                                    </div>
+                                    <button 
+                                        onClick={() => setPreviewDoc(null)}
+                                        className="p-2 text-slate-400 hover:text-white rounded-lg transition-colors"
+                                    >
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                </div>
+                                
+                                {/* Modal Body (Iframe + Details) */}
+                                <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-slate-950/40">
+                                    {/* Left: PDF Iframe */}
+                                    <div className="flex-1 h-full min-h-[45vh] md:min-h-0 relative border-r border-slate-800/50">
+                                        <iframe 
+                                            src={`https://docs.google.com/gview?url=${encodeURIComponent(previewDoc.downloadUrl)}&embedded=true`} 
+                                            className="w-full h-full border-0 bg-slate-900"
+                                            title="PDF Preview"
+                                        ></iframe>
+                                    </div>
+                                    
+                                    {/* Right: Info & Moderation Action buttons */}
+                                    <div className="w-full md:w-80 p-6 flex flex-col justify-between gap-6 overflow-y-auto bg-slate-900/30">
+                                        <div className="space-y-4">
+                                            <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Resource Metadata</h4>
+                                            <div className="space-y-2 text-sm">
+                                                <div className="flex justify-between py-2 border-b border-slate-800/50">
+                                                    <span className="text-slate-500">Course:</span>
+                                                    <span className="font-semibold text-white">{previewDoc.courseName}</span>
+                                                </div>
+                                                <div className="flex justify-between py-2 border-b border-slate-800/50">
+                                                    <span className="text-slate-500">Category:</span>
+                                                    <span className="font-semibold text-white text-right max-w-[160px] truncate">{previewDoc.category}</span>
+                                                </div>
+                                                <div className="flex justify-between py-2 border-b border-slate-800/50">
+                                                    <span className="text-slate-500">File Size:</span>
+                                                    <span className="font-semibold text-white">{(previewDoc.fileSize / 1024).toFixed(0)} KB</span>
+                                                </div>
+                                                <div className="flex justify-between py-2 border-b border-slate-800/50">
+                                                    <span className="text-slate-500">Uploaded:</span>
+                                                    <span className="font-semibold text-white">{new Date(previewDoc.createdAt).toLocaleDateString()}</span>
+                                                </div>
+                                                {previewDoc.fileName && (
+                                                    <div className="py-2">
+                                                        <span className="text-slate-500 block mb-1">Original Filename:</span>
+                                                        <span className="font-mono text-[10px] text-slate-300 break-all bg-slate-900/50 p-2 rounded block border border-slate-800">{previewDoc.fileName}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="space-y-3 pt-6 border-t border-slate-800/80">
+                                            <a 
+                                                href={previewDoc.downloadUrl} 
+                                                target="_blank" 
+                                                rel="noreferrer" 
+                                                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs uppercase tracking-widest bg-slate-800 hover:bg-slate-700 text-white border border-slate-700/80 transition-all mb-2"
+                                            >
+                                                Open in New Tab &nearr;
+                                            </a>
+                                            
+                                            {previewDoc.verified === false ? (
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <button 
+                                                        onClick={() => { handleDelete(previewDoc); setPreviewDoc(null); }}
+                                                        className="py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all text-center"
+                                                    >
+                                                        Reject
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => { handleVerify(previewDoc); setPreviewDoc(null); }}
+                                                        className="py-3 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all text-center"
+                                                    >
+                                                        Approve
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <button 
+                                                        onClick={() => { setEditDoc({ doc: {...previewDoc}, show: true, syncFile: true }); setPreviewDoc(null); }}
+                                                        className="py-3 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-cyan-500 hover:text-[#0B1120] transition-all text-center"
+                                                    >
+                                                        Edit Info
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => { handleDelete(previewDoc); setPreviewDoc(null); }}
+                                                        className="py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all text-center"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8">
                         {error && (
                             <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex gap-3 text-red-400 text-sm items-center font-medium">
@@ -1249,6 +1361,12 @@
                                                         {view === 'moderation' ? (
                                                             <>
                                                                 <button 
+                                                                    onClick={() => setPreviewDoc(doc)}
+                                                                    className="px-4 py-2 bg-cyan-500/10 text-cyan-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-cyan-500 hover:text-[#0B1120] transition-all"
+                                                                >
+                                                                    Preview
+                                                                </button>
+                                                                <button 
                                                                     onClick={() => handleDelete(doc)}
                                                                     className="px-4 py-2 bg-red-500/10 text-red-500 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
                                                                 >
@@ -1263,6 +1381,13 @@
                                                             </>
                                                         ) : (
                                                             <>
+                                                                <button 
+                                                                    onClick={() => setPreviewDoc(doc)}
+                                                                    className="p-2 text-slate-500 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-all"
+                                                                    title="Preview Document"
+                                                                >
+                                                                    <Icons.Eye />
+                                                                </button>
                                                                 <button 
                                                                     onClick={() => setEditDoc({ doc: {...doc}, show: true, syncFile: true })}
                                                                     className="p-2 text-slate-500 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-all"
