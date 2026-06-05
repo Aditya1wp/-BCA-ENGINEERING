@@ -132,19 +132,23 @@ export default async function handler(req, res) {
             throw new Error('Failed to fetch existing database.json');
         }
 
-        // Check for duplicate: same course + subject code + year + semester
-        const parsedYear = parseInt(year) || new Date().getFullYear();
-        const duplicate = currentDb.find(doc => 
-            (doc.courseName || '').toLowerCase() === courseName.toLowerCase() &&
-            (doc.subjectCode || '').toUpperCase() === safeSubjectCode &&
-            doc.year === parsedYear &&
-            (doc.semester || '') === safeSemester
-        );
+        // Check for duplicate: same course + subject code + year + semester (only for PYQ documents)
+        const currentDocType = docType || 'pyq';
+        if (currentDocType === 'pyq') {
+            const parsedYear = parseInt(year) || new Date().getFullYear();
+            const duplicate = currentDb.find(doc => 
+                (doc.courseName || '').toLowerCase() === courseName.toLowerCase() &&
+                (doc.subjectCode || '').toUpperCase() === safeSubjectCode &&
+                doc.year === parsedYear &&
+                (doc.semester || '') === safeSemester &&
+                (doc.docType || 'pyq') === 'pyq'
+            );
 
-        if (duplicate) {
-            return res.status(409).json({ 
-                error: `This document already exists: ${safeSubjectCode} (${courseName}, ${safeSemester} Sem, ${parsedYear}). Duplicate submissions are not allowed.` 
-            });
+            if (duplicate) {
+                return res.status(409).json({ 
+                    error: `This PYQ document already exists: ${safeSubjectCode} (${courseName}, ${safeSemester} Sem, ${parsedYear}). Duplicate submissions are not allowed.` 
+                });
+            }
         }
 
         // 1. Upload PDF (only after duplicate check passes)
