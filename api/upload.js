@@ -86,6 +86,7 @@ export default async function handler(req, res) {
         const safeSemester = sem ? sem.replace(/[^a-zA-Z0-9-]/g, '_') : 'Unknown_Sem';
         const safeCourseName = courseName.replace(/[^a-zA-Z0-9-]/g, '_').toLowerCase();
         const timestamp = Date.now();
+        const parsedYear = parseInt(year) || new Date().getFullYear();
         
         // Get file extension
         const ext = filename.includes('.') ? '.' + filename.split('.').pop() : '.pdf';
@@ -135,7 +136,6 @@ export default async function handler(req, res) {
         // Check for duplicate: same course + subject code + year + semester (only for PYQ documents)
         const currentDocType = docType || 'pyq';
         if (currentDocType === 'pyq') {
-            const parsedYear = parseInt(year) || new Date().getFullYear();
             const duplicate = currentDb.find(doc => 
                 (doc.courseName || '').toLowerCase() === courseName.toLowerCase() &&
                 (doc.subjectCode || '').toUpperCase() === safeSubjectCode &&
