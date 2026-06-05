@@ -136,13 +136,48 @@ export default async function handler(req, res) {
         // Check for duplicate: same course + subject code + year + semester (only for PYQ documents)
         const currentDocType = docType || 'pyq';
         if (currentDocType === 'pyq') {
-            const duplicate = currentDb.find(doc => 
-                (doc.courseName || '').toLowerCase() === courseName.toLowerCase() &&
-                (doc.subjectCode || '').toUpperCase() === safeSubjectCode &&
-                doc.year === parsedYear &&
-                (doc.semester || '') === safeSemester &&
-                (doc.docType || 'pyq') === 'pyq'
-            );
+            const cleanSubject = (c) => (c || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+            const getCourse = (d) => {
+                if (d.courseName) return d.courseName.toLowerCase();
+                if (d.downloadUrl) {
+                    const match = d.downloadUrl.match(/\/uploads\/([^/]+)\//);
+                    if (match) return match[1].toLowerCase();
+                }
+                return '';
+            };
+            const normalizeSem = (s) => {
+                if (!s) return '';
+                const clean = s.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+                const map = {
+                    'sem01': '1st', 'sem1': '1st', '1stsemester': '1st', '1stsem': '1st', '1st': '1st',
+                    'sem02': '2nd', 'sem2': '2nd', '2ndsemester': '2nd', '2ndsem': '2nd', '2nd': '2nd',
+                    'sem03': '3rd', 'sem3': '3rd', '3rdsemester': '3rd', '3rdsem': '3rd', '3rd': '3rd',
+                    'sem04': '4th', 'sem4': '4th', '4thsemester': '4th', '4thsem': '4th', '4th': '4th',
+                    'sem05': '5th', 'sem5': '5th', '5thsemester': '5th', '5thsem': '5th', '5th': '5th',
+                    'sem06': '6th', 'sem6': '6th', '6thsemester': '6th', '6thsem': '6th', '6th': '6th',
+                    'sem07': '7th', 'sem7': '7th', '7thsemester': '7th', '7thsem': '7th', '7th': '7th',
+                    'sem08': '8th', 'sem8': '8th', '8thsemester': '8th', '8thsem': '8th', '8th': '8th'
+                };
+                return map[clean] || clean;
+            };
+
+            const targetCourse = courseName.toLowerCase();
+            const targetSubject = cleanSubject(safeSubjectCode);
+            const targetSem = normalizeSem(safeSemester);
+
+            const duplicate = currentDb.find(doc => {
+                const docCourse = getCourse(doc);
+                const docSubject = cleanSubject(doc.subjectCode);
+                const docSem = normalizeSem(doc.semester);
+                const docYear = parseInt(doc.year);
+                const docTypeClean = (doc.docType || 'pyq').toLowerCase();
+
+                return docCourse === targetCourse &&
+                       docSubject === targetSubject &&
+                       docSem === targetSem &&
+                       docYear === parsedYear &&
+                       docTypeClean === 'pyq';
+            });
 
             if (duplicate) {
                 return res.status(409).json({ 
