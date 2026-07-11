@@ -898,6 +898,11 @@
             }
         }
     </style>
+    <!-- Vercel Analytics -->
+    <script>
+      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
     <div class="blueprint-grid"></div>
@@ -953,9 +958,23 @@
     </div>
 
     <header>
-        <h1 class="hero-title">Study Hub for Patna University</h1>
+        <h1 class="hero-title">BCA Engineering Hub</h1>
+        <div class="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 px-4 py-1.5 rounded-full border border-cyan-500/30 tracking-widest font-bold inline-block mb-6 uppercase shadow-[0_0_15px_rgba(6,182,212,0.15)]">EXPANDING TO OTHER PU DEPARTMENTS SOON</div>
         <p class="hero-subtitle">Access semester-wise notes, Previous Year Questions, and study resources — all shared by your fellow PU students. Learn together, grow together.</p>
         <button onclick="window.location.href='categories.html'" class="cta-button">Select Course</button>
+        <div class="mt-8 flex flex-col sm:flex-row justify-center items-center gap-4 max-w-md mx-auto">
+            <span class="text-xs font-mono uppercase tracking-widest text-slate-400 font-bold sm:mr-2">Share with batchmates:</span>
+            <div class="flex gap-3">
+                <a href="https://wa.me/?text=Hey!%20Check%20out%20BCA_ENGINEER%20-%20the%20ultimate%20hub%20for%20Patna%20University%20notes,%20PYQs,%20and%20academic%20guides!%20%F0%9F%9A%80%20https://bca-engineer.vercel.app" target="_blank" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-emerald-600/20 hover:-translate-y-0.5 transition-all no-underline">
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.717-1.456L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.97C16.579 2.022 14.1 1.001 11.99 1.001c-5.438 0-9.863 4.372-9.867 9.802-.001 1.84.482 3.631 1.4 5.201l-1.02 3.729 3.843-.997zm12.39-7.054c-.315-.156-1.86-.908-2.146-1.011-.286-.102-.495-.156-.701.156-.207.31-.798 1.011-.979 1.216-.181.206-.363.232-.678.077-.314-.156-1.329-.485-2.533-1.547-.937-.828-1.57-1.85-1.753-2.16-.183-.31-.02-.477.136-.632.14-.14.315-.36.472-.54.157-.18.21-.309.315-.515.106-.206.053-.385-.026-.54-.08-.156-.701-1.666-.96-2.28-.253-.604-.51-.522-.701-.532-.181-.008-.389-.01-.597-.01-.208 0-.547.077-.833.385-.286.31-1.094 1.059-1.094 2.581 0 1.522 1.118 2.99 1.272 3.196.156.206 2.2 3.324 5.328 4.65.744.315 1.325.503 1.777.644.747.235 1.428.2 1.969.12.602-.089 1.86-.75 2.12-1.437.26-.687.26-1.277.18-1.4-.078-.124-.286-.206-.602-.363z"/></svg>
+                    WhatsApp
+                </a>
+                <button onclick="copySiteLink(this)" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold flex items-center gap-2 border border-slate-700/50 hover:-translate-y-0.5 transition-all cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                    Copy Link
+                </button>
+            </div>
+        </div>
     </header>
 
     <section id="dashboard" class="feature-grid">
@@ -1621,6 +1640,18 @@
             let scrolled = (winScroll / height) * 100;
             document.getElementById("scroll-bar").style.width = scrolled + "%";
         };
+
+        function copySiteLink(btn) {
+            const originalText = btn.innerHTML;
+            navigator.clipboard.writeText(window.location.origin).then(() => {
+                btn.innerHTML = `✔ Copied!`;
+                btn.classList.add('bg-emerald-500/20', 'text-emerald-400');
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('bg-emerald-500/20', 'text-emerald-400');
+                }, 2000);
+            });
+        }
     </script>
     <script src="upload-system.js"></script>
 </body>
