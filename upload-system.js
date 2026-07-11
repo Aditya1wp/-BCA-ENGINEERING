@@ -219,9 +219,58 @@
         'PG Diploma': ['PGDCA', 'Public Administration', 'Industrial Safety Management', 'Yogic Science', 'Human Resource Development', 'Clinical Psychology', 'Women\'s Studies']
     };
 
-    window.openUploadModal = () => {
+    window.openUploadModal = (options = {}) => {
         modal.classList.remove('hidden');
         document.body.classList.add('modal-open');
+        
+        // Reset form
+        form.reset();
+        selectedFile = null;
+        fileNameDisp.textContent = "Click to browse PDF";
+        fileIcon.className = "w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center mx-auto mb-3 text-slate-400 transition-all";
+        fileIcon.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
+        submitBtn.disabled = true;
+        submitBtn.className = "w-full py-4 rounded-xl font-bold text-white uppercase tracking-widest bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700 transition-all";
+        submitBtn.textContent = "Select a file to continue";
+
+        if (options.category) {
+            categorySelect.value = options.category;
+            // Trigger change to populate courses
+            categorySelect.dispatchEvent(new Event('change'));
+            
+            if (options.course) {
+                const optToSelect = Array.from(courseSelect.options).find(opt => 
+                    opt.value.replace(/[^a-zA-Z]/g, '').toLowerCase() === options.course.replace(/[^a-zA-Z]/g, '').toLowerCase()
+                );
+                if (optToSelect) {
+                    courseSelect.value = optToSelect.value;
+                } else {
+                    // Try exact value or loose add if it doesn't exist
+                    let exists = Array.from(courseSelect.options).some(opt => opt.value === options.course);
+                    if (!exists) {
+                        const opt = document.createElement('option');
+                        opt.value = options.course;
+                        opt.textContent = options.course;
+                        courseSelect.appendChild(opt);
+                    }
+                    courseSelect.value = options.course;
+                }
+            }
+        }
+        
+        if (options.sem) {
+            const semSelect = document.getElementById('u-sem');
+            if (semSelect) semSelect.value = options.sem;
+        }
+        
+        if (options.docType) {
+            const dtSelect = document.getElementById('u-doctype');
+            if (dtSelect) {
+                dtSelect.value = options.docType;
+                dtSelect.dispatchEvent(new Event('change'));
+            }
+        }
+
         setTimeout(() => {
             modalContent.classList.remove('scale-95', 'opacity-0');
             modalContent.classList.add('scale-100', 'opacity-100');
