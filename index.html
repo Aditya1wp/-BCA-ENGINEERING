@@ -1031,8 +1031,8 @@
             <p>Verified Resources</p>
         </div>
         <div class="stat-item">
-            <h2 id="stat-visited">0</h2>
-            <p>User Visited</p>
+            <h2 id="stat-contributors">0</h2>
+            <p>Active Contributors</p>
         </div>
         <div class="stat-item">
             <h2>24/7</h2>
@@ -1149,6 +1149,30 @@
             </div>
         </div>
     </section>
+
+    <!-- Community Leaderboard Section -->
+    <section class="max-w-6xl mx-auto px-[8%] mb-20 relative z-10">
+        <div class="bg-[#0f172a]/80 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative overflow-hidden">
+            <div class="absolute -top-40 -right-40 w-80 h-80 bg-cyan-500/10 blur-[100px] pointer-events-none rounded-full"></div>
+            <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-500/10 blur-[100px] pointer-events-none rounded-full"></div>
+            
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 border-b border-white/10 pb-6">
+                <div>
+                    <span class="text-[10px] font-black text-cyan-400 bg-cyan-400/10 px-3 py-1 rounded-full border border-cyan-400/30 tracking-widest uppercase">Gamified Contributions</span>
+                    <h2 class="text-3xl font-black text-white mt-3">Community Leaderboard</h2>
+                    <p class="text-slate-400 text-sm mt-1">Celebrating students who made learning easier for everyone.</p>
+                </div>
+                <a href="leaderboard.html" class="px-5 py-2.5 rounded-full font-bold text-xs uppercase tracking-widest border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500 hover:text-[#0f172a] hover:border-cyan-500 transition-all shadow-lg shadow-cyan-500/10" style="text-decoration: none;">
+                    View Full List &rarr;
+                </a>
+            </div>
+            
+            <div id="homepage-leaderboard-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="col-span-full py-8 text-center text-slate-500 font-mono animate-pulse">Loading contributors...</div>
+            </div>
+        </div>
+    </section>
+
     <!-- Prestigious University About Section -->
     <section class="pu-about-wrapper">
         <div class="about-section-new">
@@ -1316,49 +1340,116 @@
             });
         });
 
-        async function initStats() {
-            const visitorCountEl = document.getElementById('stat-visited');
-            const resourceCountEl = document.getElementById('stat-papers');
-            const hasVisited = sessionStorage.getItem('hasVisited');
+        function getLeaderboardData(data) {
+            const contributors = {};
+            data.forEach(doc => {
+                if (doc.verified === false) return;
+                const name = doc.uploaderName || doc.uploader_name || 'Anonymous Student';
+                const timestamp = doc.id ? parseInt(doc.id) : new Date(doc.createdAt || 0).getTime();
+                
+                if (!contributors[name]) {
+                    contributors[name] = {
+                        name: name,
+                        count: 0,
+                        lastActive: 0
+                    };
+                }
+                
+                contributors[name].count += 1;
+                if (timestamp > contributors[name].lastActive) {
+                    contributors[name].lastActive = timestamp;
+                }
+            });
             
-            // Force reset local memory for the first time
-            if (localStorage.getItem('v_reset_v1') !== 'done') {
-                localStorage.removeItem('visitorCount');
-                localStorage.setItem('v_sync', '0');
-                localStorage.setItem('v_reset_v1', 'done');
+            return Object.values(contributors).sort((a, b) => {
+                if (b.count !== a.count) {
+                    return b.count - a.count;
+                }
+                return b.lastActive - a.lastActive;
+            });
+        }
+
+        function getContributorBadge(count) {
+            if (count >= 5) {
+                return { text: '🏆 Top Contributor', class: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30' };
+            } else if (count >= 3) {
+                return { text: '⭐ Star Contributor', class: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30' };
+            } else {
+                return { text: '🌱 Contributor', class: 'bg-slate-800/60 text-slate-400 border-slate-700/50' };
+            }
+        }
+
+        function renderHomepageLeaderboard(docs) {
+            const container = document.getElementById('homepage-leaderboard-container');
+            if (!container) return;
+
+            const sorted = getLeaderboardData(docs);
+            const topThree = sorted.slice(0, 3);
+
+            if (topThree.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full py-8 text-center text-slate-500">
+                        <p class="text-sm">No contributors yet. Upload a resource to claim rank #1!</p>
+                    </div>
+                `;
+                return;
             }
 
-            let localCount = parseInt(localStorage.getItem('visitorCount') || '0');
+            const trophyMap = {
+                0: '🏆 Gold Medal',
+                1: '🥈 Silver Medal',
+                2: '🥉 Bronze Medal'
+            };
+            const rankStyles = {
+                0: 'border-amber-500/40 bg-amber-500/5 shadow-[0_4px_30px_rgba(245,158,11,0.05)]',
+                1: 'border-slate-400/40 bg-slate-400/5 shadow-[0_4px_30px_rgba(148,163,184,0.05)]',
+                2: 'border-amber-700/40 bg-amber-700/5 shadow-[0_4px_30px_rgba(180,83,9,0.05)]'
+            };
 
-            // 1. Instant Local Increment
-            if (!hasVisited) {
-                localCount++;
-                localStorage.setItem('visitorCount', localCount);
-                sessionStorage.setItem('hasVisited', 'true');
-            }
+            container.innerHTML = topThree.map((item, idx) => {
+                const badge = getContributorBadge(item.count);
+                const rankText = trophyMap[idx] || `#${idx + 1}`;
+                const cardStyle = rankStyles[idx] || 'border-white/5 bg-slate-900/30';
+                
+                return `
+                    <div class="border rounded-3xl p-6 transition-all duration-300 hover:scale-[1.03] ${cardStyle}">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="text-[10px] font-black text-slate-400 bg-white/5 px-3 py-1 rounded-full border border-white/10 uppercase tracking-widest">${rankText}</span>
+                            <span class="text-[10px] font-bold text-slate-500 font-mono">${item.count} Approved Uploads</span>
+                        </div>
+                        <h3 class="font-black text-xl text-white mb-2 truncate">${item.name}</h3>
+                        <div class="flex justify-between items-center mt-6 pt-4 border-t border-white/5">
+                            <span class="text-[10px] font-black uppercase tracking-wider border px-2.5 py-1 rounded-md ${badge.class}">${badge.text}</span>
+                            <span class="text-[9px] text-slate-500 font-mono uppercase">Last Active: ${new Date(item.lastActive).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
 
-            // Display current total instantly
-            if (visitorCountEl) visitorCountEl.textContent = (BASELINE + localCount).toLocaleString();
-
+        async function initStats() {
+            const resourceCountEl = document.getElementById('stat-papers');
+            const contributorsCountEl = document.getElementById('stat-contributors');
+            
             try {
-                // 2. Fetch Real Verified Resources Count
                 const dbRes = await fetch(`https://raw.githubusercontent.com/Aditya1wp/bca-pyq-database/main/database.json?t=${Date.now()}`);
                 if (dbRes.ok) {
                     const dbData = await dbRes.json();
-                    if (Array.isArray(dbData)) resourceCountEl.textContent = dbData.length;
-                }
-
-                // 3. Background Sync with API
-                const apiAction = hasVisited ? 'get' : 'increment';
-                const countRes = await fetch(`${API_URL}/${apiAction}`);
-                const data = await countRes.json();
-                
-                const serverTotal = BASELINE + (data.count || 0);
-                if (visitorCountEl && serverTotal > (BASELINE + localCount)) {
-                    visitorCountEl.textContent = serverTotal.toLocaleString();
+                    if (Array.isArray(dbData)) {
+                        const verifiedDocs = dbData.filter(d => d.verified !== false);
+                        resourceCountEl.textContent = verifiedDocs.length;
+                        
+                        const contributors = new Set();
+                        verifiedDocs.forEach(doc => {
+                            contributors.add(doc.uploaderName || doc.uploader_name || 'Anonymous Student');
+                        });
+                        contributorsCountEl.textContent = contributors.size;
+                        
+                        renderHomepageLeaderboard(verifiedDocs);
+                    }
                 }
             } catch (e) {
-                console.log("Sync skipped: Running in optimized local mode.");
+                console.log("Error loading database stats:", e);
             }
         }
 

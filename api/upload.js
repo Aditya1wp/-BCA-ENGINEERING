@@ -66,7 +66,8 @@ export default async function handler(req, res) {
             year,
             category,
             courseName,
-            docType
+            docType,
+            uploaderName
         } = req.body;
         
         if (!content || !filename || !code || !courseName || !category) {
@@ -217,6 +218,14 @@ export default async function handler(req, res) {
             dbSha = refetchData.sha;
         }
 
+        // Clean and sanitize uploader name
+        let cleanUploader = (uploaderName || '').trim();
+        cleanUploader = cleanUploader.replace(/<[^>]*>?/gm, ''); // strip HTML/scripts
+        if (cleanUploader.length > 30) {
+            cleanUploader = cleanUploader.substring(0, 30);
+        }
+        const safeUploaderName = cleanUploader || 'Anonymous Student';
+
         const newRecord = {
             id: timestamp.toString(),
             category: category,
@@ -230,7 +239,9 @@ export default async function handler(req, res) {
             createdAt: new Date().toISOString(),
             fileName: filename,
             fileSize: fileSize || 0,
-            downloadUrl: downloadUrl
+            downloadUrl: downloadUrl,
+            uploaderName: safeUploaderName,
+            uploader_name: safeUploaderName
         };
 
         currentDb.push(newRecord);

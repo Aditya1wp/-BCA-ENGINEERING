@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contributor Leaderboard | BCA_ENGINEER</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS (No-conflict mode) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            corePlugins: {
+                preflight: false,
+            }
+        }
+    </script>
+    <!-- Global CSS / Theme variables matching base application -->
+    <style>
+        :root {
+            --bg-dark: #050c1a;
+            --blue-card: #0c152b;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --cyan-primary: #06b6d4;
+            --cyan-light: #22d3ee;
+            --purple-accent: #8b5cf6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
+                              radial-gradient(circle at 0% 100%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* Nav & Layout styles matching index.html */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 8%;
+            background: rgba(5, 12, 26, 0.7);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 100;
+        }
+
+        .logo-text {
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            font-size: 1.25rem;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, white, var(--text-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--cyan-light);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+        }
+
+        .back-btn:hover {
+            color: white;
+            transform: translateX(-4px);
+        }
+
+        .hero-section {
+            padding-top: 140px;
+            padding-bottom: 40px;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+            px: 20px;
+        }
+
+        .hero-title {
+            font-size: 2.75rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+            line-height: 1.1;
+            margin-bottom: 16px;
+        }
+
+        .hero-subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        /* Glassmorphism Panel */
+        .glass-panel {
+            background: rgba(12, 21, 43, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 2rem;
+        }
+
+        .table-row {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            transition: background-color 0.2s ease;
+        }
+
+        .table-row:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Blueprint grid lines */
+        .blueprint-grid {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(6, 182, 212, 0.2);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(6, 182, 212, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="blueprint-grid"></div>
+
+    <nav>
+        <a href="index.html" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
+            <span class="logo-text">BCA_ENGINEER</span>
+        </a>
+        <a href="index.html" class="back-btn">
+            &larr; Back to Homepage
+        </a>
+    </nav>
+
+    <main class="max-w-5xl mx-auto px-4 relative z-10">
+        <section class="hero-section">
+            <span class="text-[10px] font-black text-cyan-400 bg-cyan-400/10 px-4 py-1.5 rounded-full border border-cyan-400/30 tracking-[0.2em] uppercase">Community Recognition</span>
+            <h1 class="hero-title mt-4 text-white">Academic Contributors Leaderboard</h1>
+            <p class="hero-subtitle">Celebrating students who anonymously or publicly shared question papers and notes to help everyone score higher.</p>
+        </section>
+
+        <!-- Search & Info Bar -->
+        <div class="glass-panel p-6 mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="relative w-full md:w-80">
+                <input type="text" id="search-input" placeholder="Search by nickname..." class="w-full px-4 py-3 bg-[#050c1a] border border-white/10 rounded-xl text-white outline-none focus:ring-2 focus:ring-cyan-500 font-medium text-sm transition-all">
+                <svg class="absolute right-3.5 top-3.5 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <div class="text-xs text-slate-400 font-mono flex items-center gap-2">
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                Live sync active with GitHub CMS database
+            </div>
+        </div>
+
+        <!-- Leaderboard Table -->
+        <div class="glass-panel overflow-hidden mb-12 shadow-2xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-white/10 bg-slate-900/40">
+                            <th class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 w-24 text-center">Rank</th>
+                            <th class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Contributor Nickname</th>
+                            <th class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center w-40">Approved Uploads</th>
+                            <th class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center w-48">Last Contribution</th>
+                            <th class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center w-48">Achievement Badge</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <tr>
+                            <td colspan="5" class="px-6 py-20 text-center text-slate-500 font-mono animate-pulse">
+                                Connecting to PU archives database...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Contribution CTA -->
+        <section class="glass-panel p-8 md:p-12 mb-20 text-center relative overflow-hidden">
+            <div class="absolute -top-24 -right-24 w-60 h-60 bg-cyan-500/10 blur-[80px] pointer-events-none rounded-full"></div>
+            <div class="relative z-10 max-w-2xl mx-auto space-y-6">
+                <h3 class="text-2xl font-black text-white">Want to join the leaderboard?</h3>
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    Contribute your exam papers, notes, or model answers. No sign-up required. Your nickname will immediately appear on the board once approved by our moderation team.
+                </p>
+                <div class="pt-2">
+                    <button onclick="openUploadModal()" class="px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-[#050c1a] hover:from-cyan-400 hover:to-blue-400 font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-cyan-500/25 border-none cursor-pointer">
+                        Upload Study Material
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Leaderboard Fetch & Render logic -->
+    <script>
+        let allContributors = [];
+
+        function getLeaderboardData(data) {
+            const contributors = {};
+            data.forEach(doc => {
+                // Only count verified resources
+                if (doc.verified === false) return;
+                
+                const name = doc.uploaderName || doc.uploader_name || 'Anonymous Student';
+                const timestamp = doc.id ? parseInt(doc.id) : new Date(doc.createdAt || 0).getTime();
+                
+                if (!contributors[name]) {
+                    contributors[name] = {
+                        name: name,
+                        count: 0,
+                        lastActive: 0
+                    };
+                }
+                
+                contributors[name].count += 1;
+                if (timestamp > contributors[name].lastActive) {
+                    contributors[name].lastActive = timestamp;
+                }
+            });
+            
+            // Sort: Count descending, then lastActive descending (tie-breaker)
+            return Object.values(contributors).sort((a, b) => {
+                if (b.count !== a.count) {
+                    return b.count - a.count;
+                }
+                return b.lastActive - a.lastActive;
+            });
+        }
+
+        function getContributorBadge(count) {
+            if (count >= 5) {
+                return { text: '🏆 Top Contributor', class: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30' };
+            } else if (count >= 3) {
+                return { text: '⭐ Star Contributor', class: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30' };
+            } else {
+                return { text: '🌱 Contributor', class: 'bg-slate-800 text-slate-400 border-slate-700/50' };
+            }
+        }
+
+        function renderLeaderboard(list) {
+            const tbody = document.getElementById('leaderboard-body');
+            if (list.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-slate-500 font-mono">
+                            No contributors matched the search filter.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const trophyMap = {
+                0: '🥇',
+                1: '🥈',
+                2: '🥉'
+            };
+
+            tbody.innerHTML = list.map((item, idx) => {
+                const badge = getContributorBadge(item.count);
+                const rankDisplay = trophyMap[idx] || `<span class="font-mono font-bold text-slate-500">#${idx + 1}</span>`;
+                const isTopThree = idx < 3;
+                const rowHighlight = idx === 0 ? 'bg-amber-500/5' : idx === 1 ? 'bg-slate-400/5' : idx === 2 ? 'bg-amber-700/5' : '';
+                
+                return `
+                    <tr class="table-row ${rowHighlight}">
+                        <td class="px-6 py-4 text-center text-xl">${rankDisplay}</td>
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-white text-sm md:text-base">${item.name}</div>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="font-mono font-black text-cyan-400 text-base">${item.count}</span>
+                        </td>
+                        <td class="px-6 py-4 text-center text-xs text-slate-400 font-mono">
+                            ${new Date(item.lastActive).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-block px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded border ${badge.class}">
+                                ${badge.text}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function fetchLeaderboard() {
+            try {
+                const dbRes = await fetch(`https://raw.githubusercontent.com/Aditya1wp/bca-pyq-database/main/database.json?t=${Date.now()}`);
+                if (dbRes.ok) {
+                    const dbData = await dbRes.json();
+                    if (Array.isArray(dbData)) {
+                        allContributors = getLeaderboardData(dbData);
+                        renderLeaderboard(allContributors);
+                    } else {
+                        throw new Error('Database format invalid');
+                    }
+                } else {
+                    throw new Error('Database failed to load');
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('leaderboard-body').innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-red-400 font-mono">
+                            Error loading leaderboard data: ${err.message}. Please reload.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Search Filter
+        const searchInput = document.getElementById('search-input');
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const filtered = allContributors.filter(c => c.name.toLowerCase().includes(query));
+            renderLeaderboard(filtered);
+        });
+
+        window.addEventListener('DOMContentLoaded', fetchLeaderboard);
+    </script>
+    
+    <script src="upload-system.js"></script>
+</body>
+</html>

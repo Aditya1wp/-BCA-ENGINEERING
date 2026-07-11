@@ -168,6 +168,10 @@
                     </select>
                 </div>
                 <div class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest">Your Name / Nickname (optional — shown on leaderboard)</label>
+                    <input type="text" id="u-uploader-name" maxlength="30" class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:ring-2 focus:ring-cyan-500" placeholder="e.g. Aditya, John (Default: Anonymous Student)">
+                </div>
+                <div class="space-y-2">
                     <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest">PDF File</label>
                     <input type="file" id="u-file" class="hidden" accept="application/pdf">
                     <div id="u-drop-area" class="border-2 border-dashed border-slate-700 rounded-2xl p-8 text-center cursor-pointer hover:border-cyan-500/50 hover:bg-slate-800/50 transition-all">
@@ -305,7 +309,8 @@
                         name: document.getElementById('u-name').value,
                         sem: document.getElementById('u-sem').value,
                         year: parseInt(document.getElementById('u-year').value) || 0,
-                        docType: document.getElementById('u-doctype').value
+                        docType: document.getElementById('u-doctype').value,
+                        uploaderName: document.getElementById('u-uploader-name').value
                     })
                 });
 
@@ -378,11 +383,95 @@
         }
     }
 
+    // 5. One-Time Session Upload Invitation Modal
+    function initPromotionalModal() {
+        let pageViews = parseInt(localStorage.getItem('bca_page_views') || '0');
+        pageViews++;
+        localStorage.setItem('bca_page_views', pageViews.toString());
+
+        const promoShown = localStorage.getItem('bca_promo_modal_shown') === 'true';
+
+        if (pageViews >= 3 && !promoShown) {
+            localStorage.setItem('bca_promo_modal_shown', 'true');
+            
+            const promoHtml = `
+            <div id="promo-modal" class="fixed inset-0 z-[3000] flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-[#0B1120]/90 backdrop-blur-md" id="promo-backdrop"></div>
+                <div class="relative w-full max-w-lg bg-[#0f172a]/95 backdrop-blur-xl rounded-[2.5rem] p-8 shadow-2xl border border-cyan-500/30 transform transition-all scale-95 opacity-0 duration-300" id="promo-content">
+                    <div class="absolute -top-20 -right-20 w-48 h-48 bg-cyan-500/10 blur-[50px] pointer-events-none rounded-full"></div>
+                    <div class="absolute -bottom-20 -left-20 w-48 h-48 bg-indigo-600/10 blur-[50px] pointer-events-none rounded-full"></div>
+                    
+                    <button id="close-promo-modal" class="absolute top-6 right-6 text-slate-400 hover:text-white transition-colors z-10 bg-transparent border-none cursor-pointer">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                    
+                    <div class="text-center space-y-6">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-tr from-cyan-500/20 to-indigo-500/20 text-cyan-400 ring-1 ring-cyan-500/30">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                        </div>
+                        <div class="space-y-2">
+                            <h3 class="text-2xl font-black text-white tracking-tight">Help Your Peers! 🚀</h3>
+                            <p class="text-slate-300 text-sm leading-relaxed">
+                                BCA_ENGINEER is a community platform run entirely by students. If you have question papers or notes, share them to help the next batch prepare better!
+                            </p>
+                        </div>
+                        
+                        <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                            <button id="promo-btn-upload" class="flex-1 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-[#0f172a] hover:from-cyan-400 hover:to-blue-400 font-bold text-xs uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-cyan-500/20 cursor-pointer border-none">
+                                Upload a Resource
+                            </button>
+                            <button id="promo-btn-dismiss" class="flex-1 py-4 bg-slate-800/80 text-slate-300 hover:bg-slate-700/80 font-bold text-xs uppercase tracking-widest rounded-xl transition-all cursor-pointer border-none">
+                                Maybe Later
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `;
+            
+            const promoContainer = document.createElement("div");
+            promoContainer.innerHTML = promoHtml;
+            document.body.appendChild(promoContainer);
+            
+            const promoModal = document.getElementById('promo-modal');
+            const promoContent = document.getElementById('promo-content');
+            const promoBackdrop = document.getElementById('promo-backdrop');
+            const promoClose = document.getElementById('close-promo-modal');
+            const promoUploadBtn = document.getElementById('promo-btn-upload');
+            const promoDismissBtn = document.getElementById('promo-btn-dismiss');
+            
+            const closePromo = () => {
+                promoContent.classList.remove('scale-100', 'opacity-100');
+                promoContent.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => promoModal.remove(), 300);
+            };
+            
+            setTimeout(() => {
+                promoContent.classList.remove('scale-95', 'opacity-0');
+                promoContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            
+            promoBackdrop.onclick = closePromo;
+            promoClose.onclick = closePromo;
+            promoDismissBtn.onclick = closePromo;
+            promoUploadBtn.onclick = () => {
+                closePromo();
+                setTimeout(() => {
+                    if (window.openUploadModal) window.openUploadModal();
+                }, 400);
+            };
+        }
+    }
+
     // Run injection when DOM is ready
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', injectButton);
+        document.addEventListener('DOMContentLoaded', () => {
+            injectButton();
+            initPromotionalModal();
+        });
     } else {
         injectButton();
+        initPromotionalModal();
     }
 
 })();
