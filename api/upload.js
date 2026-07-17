@@ -22,24 +22,36 @@ export default async function handler(req, res) {
             const GITHUB_OWNER = process.env.GITHUB_OWNER || 'Aditya1wp'; 
             const GITHUB_REPO = process.env.GITHUB_REPO || 'bca-pyq-database';
             
-            if (!GITHUB_TOKEN) {
-                return res.status(500).json({ error: 'Configuration Error: Token not set.' });
+            const headers = {
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'BCA-ENGINEER-APP'
+            };
+            if (GITHUB_TOKEN) {
+                headers['Authorization'] = `Bearer ${GITHUB_TOKEN}`;
             }
 
-            const dbRes = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/database.json`, {
-                headers: {
-                    'Authorization': `Bearer ${GITHUB_TOKEN}`,
+            let dbRes = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/database.json`, {
+                headers
+            });
+
+            // Fallback for public repository access if token is invalid, expired, or missing
+            if ((dbRes.status === 401 || dbRes.status === 403 || !GITHUB_TOKEN) && dbRes.status !== 404) {
+                console.log('GET: Retrying database.json fetch without authentication...');
+                const publicHeaders = {
                     'Accept': 'application/vnd.github.v3+json',
                     'User-Agent': 'BCA-ENGINEER-APP'
-                }
-            });
+                };
+                dbRes = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/database.json`, {
+                    headers: publicHeaders
+                });
+            }
 
             if (dbRes.status === 404) {
                 return res.status(200).json([]);
             }
 
             if (!dbRes.ok) {
-                throw new Error('Failed to fetch database.json');
+                throw new Error(`Failed to fetch database.json (Status ${dbRes.status})`);
             }
 
             const dbData = await dbRes.json();
@@ -101,15 +113,33 @@ export default async function handler(req, res) {
         console.log(`Uploading ${filePath} to GitHub repository: ${GITHUB_OWNER}/${GITHUB_REPO}...`);
 
         const githubFetch = async (path, options = {}) => {
-            return fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`, {
+            const isWrite = options.method && options.method !== 'GET';
+            const headers = {
+                'Content-Type': 'application/json',
+                'User-Agent': 'BCA-ENGINEER-APP',
+                ...options.headers
+            };
+            if (GITHUB_TOKEN) {
+                headers['Authorization'] = `Bearer ${GITHUB_TOKEN}`;
+            }
+
+            let res = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`, {
                 ...options,
-                headers: {
-                    'Authorization': `Bearer ${GITHUB_TOKEN}`,
-                    'Content-Type': 'application/json',
-                    'User-Agent': 'BCA-ENGINEER-APP',
-                    ...options.headers
-                }
+                headers
             });
+
+            // For read operations, fallback to unauthenticated request if the token returns 401/403 (e.g. expired/revoked)
+            if (!res.ok && !isWrite && GITHUB_TOKEN && (res.status === 401 || res.status === 403)) {
+                console.warn(`Read failed with status ${res.status} using token. Retrying without token...`);
+                const noAuthHeaders = { ...headers };
+                delete noAuthHeaders['Authorization'];
+                res = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`, {
+                    ...options,
+                    headers: noAuthHeaders
+                });
+            }
+
+            return res;
         };
 
         // --- DUPLICATE CHECK: Fetch database.json FIRST ---
@@ -201,6 +231,11 @@ export default async function handler(req, res) {
 
         if (!pdfRes.ok) {
             console.error("GitHub API Error (PDF):", pdfData);
+            if (pdfRes.status === 401 || pdfRes.status === 403) {
+                return res.status(401).json({
+                    error: 'GitHub Authentication Error: The server GITHUB_TOKEN is invalid, expired, or unauthorized. Please check your environment variables.'
+                });
+            }
             if (pdfData.message && pdfData.message.includes('sha')) {
                 return res.status(409).json({ error: 'A file with this name already exists in this folder.' });
             }
@@ -262,6 +297,11 @@ export default async function handler(req, res) {
         if (!dbUpdateRes.ok) {
             const dbErr = await dbUpdateRes.json();
             console.error("GitHub API Error (Database):", dbErr);
+            if (dbUpdateRes.status === 401 || dbUpdateRes.status === 403) {
+                return res.status(401).json({
+                    error: 'GitHub Authentication Error: The server GITHUB_TOKEN is invalid or expired when updating database.json. Please check your environment variables.'
+                });
+            }
             throw new Error(dbErr.message || 'Failed to update database.json');
         }
 
