@@ -157,17 +157,23 @@
             }, [isConfigured, view]);
 
             const githubApi = async (endpoint, options = {}) => {
-                const res = await fetch(`https://api.github.com/repos/${config.owner}/${config.repo}/${endpoint}`, {
-                    ...options,
-                    headers: {
-                        'Authorization': `Bearer ${config.token}`,
-                        'Accept': 'application/vnd.github.v3+json',
-                        'Content-Type': 'application/json',
-                        ...options.headers
-                    }
-                });
-                return res;
-            };
+                 const isGet = !options.method || options.method === 'GET';
+                 let finalEndpoint = endpoint;
+                 if (isGet) {
+                     const separator = endpoint.includes('?') ? '&' : '?';
+                     finalEndpoint = `${endpoint}${separator}_nocache=${Date.now()}`;
+                 }
+                 const res = await fetch(`https://api.github.com/repos/${config.owner}/${config.repo}/${finalEndpoint}`, {
+                     ...options,
+                     headers: {
+                         'Authorization': `Bearer ${config.token}`,
+                         'Accept': 'application/vnd.github.v3+json',
+                         'Content-Type': 'application/json',
+                         ...options.headers
+                     }
+                 });
+                 return res;
+             };
 
             const githubFetch = async (path, options = {}) => {
                 return githubApi(`contents/${path}${!options.method || options.method === 'GET' ? `?ref=${config.branch || 'main'}` : ''}`, options);
